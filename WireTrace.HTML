@@ -1273,8 +1273,10 @@
         .hidden {
             display: none !important;
         }
-        .packet-list td:nth-child(2) {
-            white-space: nowrap;
+        #pcapViewer .packet-list td:nth-child(2) {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         }
         .packet-list table {
             width: 100%;
