@@ -1276,6 +1276,10 @@
         .packet-list td:nth-child(2) {
             white-space: nowrap;
         }
+        .packet-list table {
+            width: 100%;
+            table-layout: fixed;  /* respects the column widths we set */
+        }
     </style>
 </head>
 <body>
@@ -1368,11 +1372,11 @@
                             <thead>
                                 <tr>
                                     <th style="width: 50px;">NO.</th>
-                                    <th style="width: 200px;">TIME</th>
-                                    <th style="width: 160px;">SOURCE</th>
-                                    <th style="width: 160px;">DESTINATION</th>
-                                    <th style="width: 100px;">PROTOCOL</th>
-                                    <th style="width: 80px;">LEN</th>
+                                    <th style="width: 170px;">TIME</th>
+                                    <th style="width: 130px;">SOURCE</th>
+                                    <th style="width: 130px;">DESTINATION</th>
+                                    <th style="width: 80px;">PROTOCOL</th>
+                                    <th style="width: 60px;">LEN</th>
                                     <th>INFO</th>
                                 </tr>
                             </thead>
