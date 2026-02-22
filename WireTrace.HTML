@@ -1522,7 +1522,6 @@
                             <div class="sidebar-tab active" onclick="switchSidebarTab('details')">📦 Details</div>
                             <div class="sidebar-tab" onclick="switchSidebarTab('endpoints')">🌐 Endpoints</div>
                             <div class="sidebar-tab" onclick="switchSidebarTab('security')">🛡️ Security</div>
-                            <div class="sidebar-tab" onclick="switchSidebarTab('findings')" id="pcapFindingsTabBtn">🧭 Findings (0)</div>
                         </div>
 
                         <div class="sidebar-content active" id="detailsTab">
@@ -1558,12 +1557,6 @@
                             </div>
                         </div>
 
-                        <div class="sidebar-content" id="findingsTab">
-                            <div class="detail-section">
-                                <h3>🧭 Investigation Findings</h3>
-                                <div id="pcapFindingsContent"></div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -3777,24 +3770,66 @@
                 return;
             }
 
-            const summary = `<div class="findings-title"><strong>🧭 Investigation Findings (${pcapFindingsSummary.total})</strong><span class="text-muted" style="font-size:11px;">High ${pcapFindingsSummary.high} • Medium ${pcapFindingsSummary.medium} • Low ${pcapFindingsSummary.low}</span></div>`;
-            container.innerHTML = summary + `<div class="findings-list">` + pcapFindings.map(finding => `
+            const highSeverityFindings = pcapFindings.filter(finding => finding.severity === 'high');
+            const groupedByEntity = new Map();
+
+            for (const finding of highSeverityFindings) {
+                const affected = finding.affected || [];
+                const targets = affected.length > 0 ? affected : [{ ip: '', mac: '', note: 'Unresolved target' }];
+                for (const target of targets) {
+                    const ip = (target.ip || '').trim();
+                    const mac = (target.mac || '').trim();
+                    const key = ip ? `ip:${ip}` : (mac ? `mac:${mac}` : 'unknown');
+                    if (!groupedByEntity.has(key)) {
+                        groupedByEntity.set(key, { key, ip, mac, findings: [], primaryFinding: finding });
+                    }
+                    groupedByEntity.get(key).findings.push(finding);
+                }
+            }
+
+            const groupedFindings = Array.from(groupedByEntity.values()).map(group => {
+                const dedup = [];
+                const seen = new Set();
+                for (const finding of group.findings) {
+                    if (!seen.has(finding.id)) {
+                        dedup.push(finding);
+                        seen.add(finding.id);
+                    }
+                }
+                return { ...group, findings: dedup };
+            });
+
+            const summary = `<div class="findings-title"><strong>🧭 Investigation Findings (${groupedFindings.length})</strong><span class="text-muted" style="font-size: 11px;">Click “Filter packets” to focus evidence</span></div>`;
+            if (groupedFindings.length === 0) {
+                container.innerHTML = summary + `<p class="text-muted">No high severity patterns detected.</p>`;
+                return;
+            }
+
+            container.innerHTML = summary + `<div class="findings-list">` + groupedFindings.map(group => {
+                const entityLabel = group.ip || group.mac || 'Unknown target';
+                const entityMeta = [group.ip ? `IP ${group.ip}` : '', group.mac ? `MAC ${group.mac}` : ''].filter(Boolean).join(' • ') || 'Affected entities not resolved';
+                return `
                 <article class="finding-card" style="margin-bottom:10px;">
                     <div class="finding-header">
-                        <div><strong>${finding.title}</strong> <span class="text-muted">(${finding.category})</span></div>
-                        ${findingBadge(finding.severity)}
+                        <div><strong>${entityLabel}</strong> <span class="text-muted">(${group.findings.length} finding${group.findings.length === 1 ? '' : 's'})</span></div>
+                        ${findingBadge('high')}
                     </div>
-                    <div class="finding-impact">${finding.impact}</div>
-                    <div class="finding-meta">${(finding.affected || []).map(item => [item.ip, item.mac, item.port, item.note].filter(Boolean).join(' • ')).join('<br>') || 'Affected entities not resolved'}</div>
-                    <div class="finding-evidence"><strong>Evidence:</strong> ${finding.evidence.count} packets • ${finding.evidence.firstSeen} → ${finding.evidence.lastSeen}<br>
-                        ${(finding.evidence.examples || []).map(ex => `<div class="finding-example">#${ex.no}: ${ex.summary}</div>`).join('')}
-                    </div>
+                    <div class="finding-meta">${entityMeta}</div>
+                    ${group.findings.map(finding => `
+                        <div style="margin-top:10px; border-top:1px solid var(--border); padding-top:10px;">
+                            <div><strong>${finding.title}</strong> <span class="text-muted">(${finding.category})</span></div>
+                            <div class="finding-impact">${finding.impact}</div>
+                            <div class="finding-evidence"><strong>Evidence:</strong> ${finding.evidence.count} packets • ${finding.evidence.firstSeen} → ${finding.evidence.lastSeen}<br>
+                                ${(finding.evidence.examples || []).map(ex => `<div class="finding-example">#${ex.no}: ${ex.summary}</div>`).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
                     <div class="finding-actions">
-                        <button class="finding-btn" onclick="applyPCAPFindingAction('${finding.id}')">Filter packets</button>
-                        ${finding.actions && finding.actions.jumpToPacketNo ? `<button class="finding-btn" onclick="jumpToPCAPPacket(${finding.actions.jumpToPacketNo})">Jump to example</button>` : ''}
+                        <button class="finding-btn" onclick="applyPCAPFindingAction('${group.primaryFinding.id}')">Filter packets</button>
+                        <button class="finding-btn" onclick="clearPCAPFilters()">Clear Filter</button>
                     </div>
-                </article>
-            `).join('') + `</div>`;
+                </article>`;
+            }).join('') + `</div>`;
         }
 
         function applyPCAPFindingAction(findingId) {
@@ -4046,8 +4081,9 @@
             }
 
             findings.sort((a,b) => ({high:3, medium:2, low:1}[b.severity] - ({high:3, medium:2, low:1}[a.severity])) || ((b.evidence?.count||0)-(a.evidence?.count||0)));
-            const summary = findings.reduce((acc,f)=>{acc.total++;acc[f.severity]=(acc[f.severity]||0)+1;return acc;},{total:0,high:0,medium:0,low:0});
-            return { findings, summary };
+            const highFindings = findings.filter(finding => finding.severity === 'high');
+            const summary = highFindings.reduce((acc,f)=>{acc.total++;acc[f.severity]=(acc[f.severity]||0)+1;return acc;},{total:0,high:0,medium:0,low:0});
+            return { findings: highFindings, summary };
         }
 
         function applyPCAPFilters() {
