@@ -4976,6 +4976,8 @@
                     if (activeFindingFilter) return textTerms.some(term => searchIn.includes(term));
                     return textTerms.every(term => searchIn.includes(term));
                 }
+
+                if (textTerms.length > 0) return textTerms.every(term => searchIn.includes(term));
                 return true;
             });
 
