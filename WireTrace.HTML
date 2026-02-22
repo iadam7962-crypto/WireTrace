@@ -644,10 +644,9 @@
 
         .findings-section {
             margin: 15px 20px 20px;
-            border: 1px solid rgba(0, 212, 255, 0.25);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            background: linear-gradient(180deg, rgba(26, 31, 46, 0.95), rgba(13, 17, 23, 0.95));
-            box-shadow: 0 0 0 1px rgba(220, 40, 87, 0.12) inset;
+            background: var(--bg-card);
             padding: 14px;
         }
 
@@ -667,10 +666,9 @@
         }
 
         .finding-card {
-            border: 1px solid rgba(48, 54, 61, 0.9);
-            border-left: 3px solid var(--crimson);
+            border: 1px solid var(--border);
             border-radius: 8px;
-            background: linear-gradient(180deg, rgba(13, 17, 23, 0.96), rgba(20, 25, 31, 0.92));
+            background: var(--bg-card-dark);
             padding: 10px;
             font-size: 12px;
         }
@@ -747,7 +745,6 @@
         .finding-btn:hover {
             border-color: var(--cyan);
             color: var(--cyan);
-            background: rgba(0, 212, 255, 0.12);
         }
 
         .finding-example {
@@ -4322,7 +4319,8 @@
                         affected: [{ mac: rec.mac, ip: Array.from(rec.ips)[0] || '', hostname: Array.from(rec.hostnames)[0] || '', iface: Array.from(rec.wifi.interfaces).join('/') }],
                         impact: 'Intermittent Wi-Fi: brief drops, unstable calls, and app session resets are likely.',
                         evidence: { count: totalWifiEvents, firstSeen: patterns.timeRange.first, lastSeen: patterns.timeRange.last, examples: rec.wifi.samples },
-                            filterKeys: { mac: [rec.mac], ip: Array.from(rec.ips), keywords: ['AP-STA', 'DISCONNECTED', 'CONNECTED'], iface: Array.from(rec.wifi.interfaces) } });
+                        suggestedNextChecks: ['Check band-steering / smart-connect thresholds.', 'Review client RSSI and roam aggressiveness.', 'Verify mesh/extender backhaul stability.'],
+                        filterKeys: { mac: [rec.mac], ip: Array.from(rec.ips), keywords: ['AP-STA', 'DISCONNECTED', 'CONNECTED'], iface: Array.from(rec.wifi.interfaces) } });
                 }
                 const dhcpTotal = rec.dhcp.request + rec.dhcp.ack;
                 if (dhcpTotal >= DETECTION_THRESHOLDS.DHCP_NOISE_THRESHOLD) {
@@ -4330,6 +4328,7 @@
                         affected: [{ mac: rec.mac, ip: Array.from(rec.ips)[0] || '', hostname: Array.from(rec.hostnames)[0] || '' }],
                         impact: 'Frequent lease renewals can indicate unstable connectivity or repeated network reattachment.',
                         evidence: { count: dhcpTotal, firstSeen: patterns.timeRange.first, lastSeen: patterns.timeRange.last, examples: rec.dhcp.samples },
+                        suggestedNextChecks: ['Check DHCP lease duration and scope utilization.', 'Verify client is not power-cycling Wi-Fi frequently.', 'Inspect AP logs for disconnect reason codes.'],
                         filterKeys: { mac: [rec.mac], ip: Array.from(rec.ips), keywords: ['DHCPREQUEST', 'DHCPACK'], iface: [] } });
                 }
             }
@@ -4340,6 +4339,7 @@
                     affected: [{ mac, ip: rec ? Array.from(rec.ips)[0] || '' : '', hostname: rec ? Array.from(rec.hostnames)[0] || '' : '', iface: Array.from(rapid.interfaces).join('/') }],
                     impact: 'Rapid interface changes suggest aggressive roaming or unstable RF conditions.',
                     evidence: { count: rapid.count, firstSeen: patterns.timeRange.first, lastSeen: patterns.timeRange.last, examples: rapid.samples },
+                    suggestedNextChecks: ['Tune roaming thresholds and minimum RSSI.', 'Confirm channel overlap and AP placement.', 'Temporarily disable smart roaming to compare behavior.'],
                     filterKeys: { mac: [mac], ip: rec ? Array.from(rec.ips) : [], keywords: ['AP-STA-CONNECTED', 'AP-STA-DISCONNECTED'], iface: Array.from(rapid.interfaces) } });
             }
 
@@ -4350,6 +4350,7 @@
                         affected: [{ iface: ifaceRec.interfaceName, note: 'All devices behind this uplink may experience drops.' }],
                         impact: 'Physical link flaps or low negotiated speed may cause short outages and packet loss.',
                         evidence: { count: ifaceRec.linkDownCount + ifaceRec.linkUpCount, firstSeen: patterns.timeRange.first, lastSeen: patterns.timeRange.last, examples: ifaceRec.samples },
+                        suggestedNextChecks: ['Inspect cable quality and connectors.', 'Check port errors/duplex mismatch on connected equipment.', 'Validate ISP ONT/modem stability if this is WAN-facing.'],
                         filterKeys: { mac: [], ip: [], keywords: ['Link DOWN', 'Link Up'], iface: [ifaceRec.interfaceName] } });
                 }
             }
@@ -4359,6 +4360,7 @@
                     affected: [{ iface: 'pppoe-wan', note: 'WAN connectivity may drop for all clients.' }],
                     impact: 'PPPoE discovery/session failures can interrupt Internet for every device behind the router.',
                     evidence: { count: pppoeSummary.failures, firstSeen: patterns.timeRange.first, lastSeen: patterns.timeRange.last, examples: pppoeSummary.samples },
+                    suggestedNextChecks: ['Check ISP session logs and authentication credentials.', 'Inspect line stability around PPPoE reconnect times.', 'Review router WAN interface error counters.'],
                     filterKeys: { mac: [], ip: [], keywords: ['PADI', 'PADO', 'PADR', 'PADS', 'PADT', 'LCP', 'CHAP', 'PAP', 'pppoe-wan'], iface: ['pppoe-wan'] } });
             }
 
@@ -4368,6 +4370,7 @@
                         affected: [{ mac: rec.mac, ip: Array.from(rec.ips)[0] || '', hostname: Array.from(rec.hostnames)[0] || '' }],
                         impact: 'A high-severity event references this device and may affect service quality.',
                         evidence: { count: rec.severityEvents.length, firstSeen: `${rec.severityEvents[0].date} ${rec.severityEvents[0].time}`, lastSeen: `${rec.severityEvents[rec.severityEvents.length - 1].date} ${rec.severityEvents[rec.severityEvents.length - 1].time}`, examples: rec.severityEvents.slice(0, DETECTION_THRESHOLDS.MAX_FINDING_EXAMPLES).map(e => ({ no: e.no, details: truncate(e.details, 140) })) },
+                        suggestedNextChecks: ['Open the filtered events and inspect adjacent log lines for root cause.'],
                         filterKeys: { mac: [rec.mac], ip: Array.from(rec.ips), keywords: ['error', 'critical'], iface: [] } });
                 }
             }
@@ -4519,19 +4522,17 @@
             if (!currentEventStats || !currentEventStats.findings) return;
             const finding = currentEventStats.findings.find(item => item.id === findingId);
             if (!finding) return;
-
             const keys = finding.filterKeys || {};
-            const bestToken = (keys.mac && keys.mac[0]) || (keys.ip && keys.ip[0]) || (keys.iface && keys.iface[0]) || (keys.keywords && keys.keywords[0]) || '';
-
-            document.getElementById('eventFilter').value = bestToken;
+            const terms = [];
+            ['mac', 'ip', 'iface', 'keywords'].forEach(key => {
+                (keys[key] || []).forEach(value => {
+                    if (value && !terms.includes(value)) terms.push(value);
+                });
+            });
+            document.getElementById('eventFilter').value = terms.join(' ');
             applyEventFilters();
             const section = document.getElementById('eventViewer');
             if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function clearFindingFilter() {
-            clearEventFilters();
-            renderFindings((currentEventStats && currentEventStats.findings) || []);
         }
 
         function jumpToFindings() {
@@ -4556,20 +4557,10 @@
                 return;
             }
 
-            const highSeverityFindings = findings.filter(finding => finding.severity === 'high');
-
-            if (highSeverityFindings.length === 0) {
-                findingsContent.innerHTML = `
-                    <div class="findings-title"><strong>🧭 Investigation Findings</strong></div>
-                    <p class="text-muted">No high-severity device-impacting findings detected.</p>
-                `;
-                return;
-            }
-
-            const visibleFindings = highSeverityFindings.slice(0, findingsVisibleCount);
+            const visibleFindings = findings.slice(0, findingsVisibleCount);
             const html = `
                 <div class="findings-title">
-                    <strong>🧭 Investigation Findings (${highSeverityFindings.length} high severity)</strong>
+                    <strong>🧭 Investigation Findings (${findings.length})</strong>
                     <span class="text-muted" style="font-size: 11px;">Click “Filter Events” to focus evidence</span>
                 </div>
                 <div class="findings-list">
@@ -4587,14 +4578,15 @@
                                 <strong>Evidence:</strong> ${finding.evidence?.count || 0} events • ${finding.evidence?.firstSeen || 'N/A'} → ${finding.evidence?.lastSeen || 'N/A'}
                                 ${(finding.evidence?.examples || []).map(example => `<div class="finding-example">#${example.no}: ${example.details}</div>`).join('')}
                             </div>
+                            <div class="finding-meta"><strong>Next checks:</strong> ${(finding.suggestedNextChecks || []).join(' ')}</div>
                             <div class="finding-actions">
                                 <button class="finding-btn" onclick="applyFindingFilter('${finding.id}')">Filter Events</button>
-                                <button class="finding-btn" onclick="clearFindingFilter()">Clear Filter</button>
+                                <button class="finding-btn" onclick="clearEventFilters()">Clear Filter</button>
                             </div>
                         </article>
                     `).join('')}
                 </div>
-                ${highSeverityFindings.length > visibleFindings.length ? `<button class="finding-btn findings-more-btn" onclick="showMoreFindings()">Show more findings</button>` : ''}
+                ${findings.length > visibleFindings.length ? `<button class="finding-btn findings-more-btn" onclick="showMoreFindings()">Show more findings</button>` : ''}
             `;
             findingsContent.innerHTML = html;
         }
@@ -4633,6 +4625,9 @@
 
         function clearEventFilters() {
             document.getElementById('eventFilter').value = '';
+            if (document.getElementById('findingsContent')) {
+                document.getElementById('findingsContent').innerHTML = '';
+            }
             document.getElementById('categoryFilter').value = '';
             document.getElementById('severityFilter').value = '';
             filteredEvents = allEvents;
@@ -4658,6 +4653,9 @@
             document.getElementById('fileInput').value = '';
             document.getElementById('packetFilter').value = '';
             document.getElementById('eventFilter').value = '';
+            if (document.getElementById('findingsContent')) {
+                document.getElementById('findingsContent').innerHTML = '';
+            }
         }
 
         // Debug function to test security detection
