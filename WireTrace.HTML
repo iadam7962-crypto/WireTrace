@@ -536,6 +536,10 @@
             background: var(--bg-card);
         }
 
+        .sidebar-tab.severity-high { color: #fecaca; }
+        .sidebar-tab.severity-medium { color: #fde68a; }
+        .sidebar-tab.severity-low { color: #bfdbfe; }
+
         .sidebar-content {
             display: none;
             padding: 20px;
@@ -644,10 +648,11 @@
 
         .findings-section {
             margin: 15px 20px 20px;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(0, 212, 255, 0.35);
             border-radius: 10px;
-            background: var(--bg-card);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(220, 40, 87, 0.08) 45%, var(--bg-card));
             padding: 14px;
+            box-shadow: 0 0 0 1px rgba(220, 40, 87, 0.12), 0 8px 20px rgba(0, 0, 0, 0.35);
         }
 
         .findings-title {
@@ -666,9 +671,9 @@
         }
 
         .finding-card {
-            border: 1px solid var(--border);
+            border: 1px solid rgba(0, 212, 255, 0.25);
             border-radius: 8px;
-            background: var(--bg-card-dark);
+            background: linear-gradient(120deg, rgba(10, 14, 20, 0.98), rgba(20, 25, 31, 0.96));
             padding: 10px;
             font-size: 12px;
         }
@@ -738,13 +743,15 @@
             border: 1px solid var(--border);
             font-size: 11px;
             cursor: pointer;
-            background: var(--bg-primary);
+            background: rgba(10, 14, 20, 0.9);
             color: var(--text-primary);
+            transition: all 0.2s ease;
         }
 
         .finding-btn:hover {
             border-color: var(--cyan);
             color: var(--cyan);
+            background: rgba(0, 212, 255, 0.08);
         }
 
         .finding-example {
@@ -1476,6 +1483,7 @@
                     </select>
                     <button class="btn-apply" onclick="applyPCAPFilters()">Apply</button>
                     <button class="btn-clear" onclick="clearPCAPFilters()">Clear</button>
+                    <button class="btn-jump-findings" onclick="jumpToPCAPFindings()">↓ Jump to Findings</button>
                     
                     <div class="time-controls">
                         <span class="time-label">Time:</span>
@@ -1517,6 +1525,7 @@
                             <div class="sidebar-tab active" onclick="switchSidebarTab('details')">📦 Details</div>
                             <div class="sidebar-tab" onclick="switchSidebarTab('endpoints')">🌐 Endpoints</div>
                             <div class="sidebar-tab" onclick="switchSidebarTab('security')">🛡️ Security</div>
+                            <div class="sidebar-tab" onclick="switchSidebarTab('findings')" id="pcapFindingsTabBtn">🧭 Findings (0)</div>
                         </div>
 
                         <div class="sidebar-content active" id="detailsTab">
@@ -1549,6 +1558,13 @@
                                 <div id="rogueDevicesContent">
                                     <p class="security-ok">✅ No suspicious devices detected</p>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-content" id="findingsTab">
+                            <div class="detail-section">
+                                <h3>🧭 Investigation Findings</h3>
+                                <div id="pcapFindingsContent"></div>
                             </div>
                         </div>
                     </div>
@@ -2149,6 +2165,9 @@
         let stats = {};
         let currentEventStats = null;
         let findingsVisibleCount = 10;
+        let activeFindingFilter = null;
+        let pcapFindings = [];
+        let pcapFindingsSummary = { total: 0, high: 0, medium: 0, low: 0 };
         
         // Enhanced PCAP analysis
         let ipEndpoints = new Map();
@@ -2163,6 +2182,21 @@
             'Ethernet', 'SLL', 'VLAN', 'IPv4', 'IPv6', 'ARP', 'TCP', 'UDP', 
             'ICMP', 'DNS', 'DHCP', 'HTTP', 'HTTPS', 'PPPoE', 'OTHER'
         ];
+
+        const PCAP_FINDING_THRESHOLDS = {
+            TCP_FAILED_HANDSHAKE_SYN: 20,
+            TCP_RST_THRESHOLD: 50,
+            TCP_DUP_SYN_WINDOW_SEC: 3,
+            DNS_NXDOMAIN_THRESHOLD: 10,
+            DNS_UNANSWERED_THRESHOLD: 10,
+            DHCP_BURST_THRESHOLD: 20,
+            ARP_GATEWAY_REQUEST_THRESHOLD: 30,
+            PPPOE_PADI_THRESHOLD: 10,
+            PPPOE_PADT_THRESHOLD: 1,
+            ONE_WAY_RATIO_THRESHOLD: 50,
+            MAX_PACKET_NOS: 10,
+            MAX_EXAMPLES: 5
+        };
 
         // Show/hide sections
         function showReferenceGuide() {
@@ -2300,6 +2334,8 @@
             macEndpoints.clear();
             tcpStreams.clear();
             rogueDevices = [];
+            pcapFindings = [];
+            pcapFindingsSummary = { total: 0, high: 0, medium: 0, low: 0 };
             legitimateGatewayMAC = null;
             hexDumpExpanded = false;
             let offset = 24;
@@ -2389,6 +2425,10 @@
 
             // Run ARP spoofing detection
             detectARPSpoofingFromPackets();
+
+            const findingsResult = analyzePCAPFindings(allPackets, stats);
+            pcapFindings = findingsResult.findings;
+            pcapFindingsSummary = findingsResult.summary;
             
             updateProgress(100, `Complete! Loaded ${allPackets.length.toLocaleString()} packets`);
             console.timeEnd('PCAP Parsing');
@@ -3410,6 +3450,7 @@
             renderPacketTable();
             updatePCAPStatistics();
             populateProtocolFilter();
+            renderPCAPFindings();
         }
 
         function renderPacketTable() {
@@ -3706,19 +3747,316 @@
         }
 
         function switchSidebarTab(tab) {
+            const tabMap = {
+                details: { button: 0, panel: 'detailsTab' },
+                endpoints: { button: 1, panel: 'endpointsTab' },
+                security: { button: 2, panel: 'securityTab' },
+                findings: { button: 3, panel: 'findingsTab' }
+            };
+
             document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.sidebar-content').forEach(c => c.classList.remove('active'));
-            
-            if (tab === 'details') {
-                document.querySelectorAll('.sidebar-tab')[0].classList.add('active');
-                document.getElementById('detailsTab').classList.add('active');
-            } else if (tab === 'endpoints') {
-                document.querySelectorAll('.sidebar-tab')[1].classList.add('active');
-                document.getElementById('endpointsTab').classList.add('active');
-            } else if (tab === 'security') {
-                document.querySelectorAll('.sidebar-tab')[2].classList.add('active');
-                document.getElementById('securityTab').classList.add('active');
+
+            const target = tabMap[tab] || tabMap.details;
+            const tabs = document.querySelectorAll('.sidebar-tab');
+            if (tabs[target.button]) tabs[target.button].classList.add('active');
+            const panel = document.getElementById(target.panel);
+            if (panel) panel.classList.add('active');
+        }
+
+
+        function updatePCAPFindingsTabLabel() {
+            const btn = document.getElementById('pcapFindingsTabBtn');
+            if (!btn) return;
+            btn.textContent = `🧭 Findings (${pcapFindingsSummary.total || 0})`;
+            btn.classList.remove('severity-high', 'severity-medium', 'severity-low');
+            if (pcapFindingsSummary.high > 0) btn.classList.add('severity-high');
+            else if (pcapFindingsSummary.medium > 0) btn.classList.add('severity-medium');
+            else if (pcapFindingsSummary.low > 0) btn.classList.add('severity-low');
+        }
+
+        function renderPCAPFindings() {
+            updatePCAPFindingsTabLabel();
+            const container = document.getElementById('pcapFindingsContent');
+            if (!container) return;
+
+            if (!pcapFindings || pcapFindings.length === 0) {
+                container.innerHTML = '<p class="text-muted">No suspicious patterns detected.</p>';
+                return;
             }
+
+            const summary = `<div class="finding-meta" style="margin-bottom:10px;"><strong>Total:</strong> ${pcapFindingsSummary.total} • <span style="color:#fecaca;">High ${pcapFindingsSummary.high}</span> • <span style="color:#fde68a;">Medium ${pcapFindingsSummary.medium}</span> • <span style="color:#bfdbfe;">Low ${pcapFindingsSummary.low}</span></div>`;
+            container.innerHTML = summary + pcapFindings.map(finding => `
+                <article class="finding-card" style="margin-bottom:10px;">
+                    <div class="finding-header">
+                        <div><strong>${finding.title}</strong> <span class="text-muted">(${finding.category})</span></div>
+                        ${findingBadge(finding.severity)}
+                    </div>
+                    <div class="finding-impact">${finding.impact}</div>
+                    <div class="finding-meta">${(finding.affected || []).map(item => [item.ip, item.mac, item.port, item.note].filter(Boolean).join(' • ')).join('<br>') || 'Affected entities not resolved'}</div>
+                    <div class="finding-evidence"><strong>Evidence:</strong> ${finding.evidence.count} packets • ${finding.evidence.firstSeen} → ${finding.evidence.lastSeen}<br>
+                        ${(finding.evidence.examples || []).map(ex => `<div class="finding-example">#${ex.no}: ${ex.summary}</div>`).join('')}
+                    </div>
+                    <div class="finding-actions">
+                        <button class="finding-btn" onclick="applyPCAPFindingAction('${finding.id}')">Filter packets</button>
+                        ${finding.actions && finding.actions.jumpToPacketNo ? `<button class="finding-btn" onclick="jumpToPCAPPacket(${finding.actions.jumpToPacketNo})">Jump to example</button>` : ''}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function applyPCAPFindingAction(findingId) {
+            const finding = pcapFindings.find(item => item.id === findingId);
+            if (!finding) return;
+            document.getElementById('packetFilter').value = finding.actions?.filterText || '';
+            document.getElementById('protocolFilter').value = finding.actions?.protocol || '';
+            applyPCAPFilters();
+        }
+
+        function jumpToPCAPPacket(packetNo) {
+            const packet = allPackets.find(p => p.no === packetNo);
+            if (!packet) return;
+            selectPacket(packet);
+            switchSidebarTab('details');
+        }
+
+        function jumpToPCAPFindings() {
+            switchSidebarTab('findings');
+            const panel = document.getElementById('findingsTab');
+            if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function summarizePacket(packet) {
+            return `${packet.protocol} ${packet.source} → ${packet.destination} ${truncate(packet.info || '', 70)}`;
+        }
+
+        function pushUniqueLimited(list, value, max) {
+            if (value === undefined || value === null) return;
+            if (!list.includes(value) && list.length < max) list.push(value);
+        }
+
+        function analyzePCAPFindings(packets, stats) {
+            const findings = [];
+            const byIP = new Map();
+            const byMAC = new Map();
+            const flows = new Map();
+            const dnsTxn = new Map();
+            const dnsNxByResponder = new Map();
+            const dnsUnansweredByClient = new Map();
+            const dhcpByClient = new Map();
+            const arpGatewayReq = new Map();
+            const icmpHard = new Map();
+            const pppoePacketNos = [];
+
+            const ensureIP = (ip) => {
+                if (!ip) return null;
+                if (!byIP.has(ip)) byIP.set(ip, { sentPkts:0, recvPkts:0, sentBytes:0, recvBytes:0, protocols:new Set(), ports:new Set(), syn:0, synAck:0, rst:0, fin:0, icmpUnreach:0, dnsNx:0, dhcp:{discover:0,request:0,nak:0}, arpReq:0, arpRep:0, exampleNos:[] });
+                return byIP.get(ip);
+            };
+            const ensureMAC = (mac) => {
+                if (!mac) return null;
+                if (!byMAC.has(mac)) byMAC.set(mac, { sentPkts:0, recvPkts:0, sentBytes:0, recvBytes:0, protocols:new Set(), ports:new Set(), exampleNos:[] });
+                return byMAC.get(mac);
+            };
+            const maxNo = PCAP_FINDING_THRESHOLDS.MAX_PACKET_NOS;
+            const maxEx = PCAP_FINDING_THRESHOLDS.MAX_EXAMPLES;
+
+            packets.forEach(packet => {
+                const ipLayer = packet.layers?.ip || packet.layers?.ipv6 || null;
+                const srcIP = ipLayer?.source || '';
+                const dstIP = ipLayer?.destination || '';
+                const srcMAC = packet.layers?.ethernet?.source || packet.layers?.sll?.sourceAddress || packet.layers?.arp?.senderMAC || '';
+                const dstMAC = packet.layers?.ethernet?.destination || packet.layers?.arp?.targetMAC || '';
+                const src = ensureIP(srcIP);
+                const dst = ensureIP(dstIP);
+                const srcMacRec = ensureMAC(srcMAC);
+                const dstMacRec = ensureMAC(dstMAC);
+                if (src) { src.sentPkts++; src.sentBytes += packet.length || 0; src.protocols.add(packet.protocol); pushUniqueLimited(src.exampleNos, packet.no, maxNo); }
+                if (dst) { dst.recvPkts++; dst.recvBytes += packet.length || 0; dst.protocols.add(packet.protocol); pushUniqueLimited(dst.exampleNos, packet.no, maxNo); }
+                if (srcMacRec) { srcMacRec.sentPkts++; srcMacRec.sentBytes += packet.length || 0; srcMacRec.protocols.add(packet.protocol); pushUniqueLimited(srcMacRec.exampleNos, packet.no, maxNo); }
+                if (dstMacRec) { dstMacRec.recvPkts++; dstMacRec.recvBytes += packet.length || 0; dstMacRec.protocols.add(packet.protocol); pushUniqueLimited(dstMacRec.exampleNos, packet.no, maxNo); }
+
+                if (packet.protocol === 'PPPoE') pushUniqueLimited(pppoePacketNos, packet.no, maxNo);
+
+                if (packet.layers?.tcp && srcIP && dstIP) {
+                    const tcp = packet.layers.tcp;
+                    const srcPort = tcp.sourcePort || '';
+                    const dstPort = tcp.destinationPort || '';
+                    if (src) src.ports.add(srcPort);
+                    if (dst) dst.ports.add(dstPort);
+                    const key = `${srcIP}:${srcPort}->${dstIP}:${dstPort}`;
+                    if (!flows.has(key)) flows.set(key, { syn:0, synAck:0, rst:0, fin:0, lastSynTime:null, dupSyn:0, packetNos:[], srcIP, dstIP, srcPort, dstPort });
+                    const flow = flows.get(key);
+                    pushUniqueLimited(flow.packetNos, packet.no, maxNo);
+                    const flags = tcp.flags || {};
+                    if (flags.syn && !flags.ack) {
+                        flow.syn++;
+                        if (src) src.syn++;
+                        const now = packet.absTimestamp || 0;
+                        if (flow.lastSynTime !== null && (now - flow.lastSynTime) <= PCAP_FINDING_THRESHOLDS.TCP_DUP_SYN_WINDOW_SEC) flow.dupSyn++;
+                        flow.lastSynTime = now;
+                    }
+                    if (flags.syn && flags.ack) { flow.synAck++; if (src) src.synAck++; }
+                    if (flags.rst) { flow.rst++; if (src) src.rst++; }
+                    if (flags.fin) { flow.fin++; if (src) src.fin++; }
+                }
+
+                if (packet.protocol === 'DNS' && packet.layers?.dns) {
+                    const dns = packet.layers.dns;
+                    const tx = dns.transactionId || '';
+                    const key = `${tx}|${srcIP}|${dstIP}`;
+                    const rev = `${tx}|${dstIP}|${srcIP}`;
+                    if (dns.isResponse) {
+                        const pending = dnsTxn.get(rev);
+                        if (pending) { pending.responded = true; pending.responseNo = packet.no; }
+                        if (String(dns.responseCode) === '3' || dns.responseCode === 3) {
+                            const rkey = srcIP || 'unknown';
+                            if (!dnsNxByResponder.has(rkey)) dnsNxByResponder.set(rkey, { count:0, packetNos:[], examples:[], client:dstIP });
+                            const rec = dnsNxByResponder.get(rkey);
+                            rec.count++;
+                            pushUniqueLimited(rec.packetNos, packet.no, maxNo);
+                            if (rec.examples.length < maxEx) rec.examples.push({ no: packet.no, summary: summarizePacket(packet) });
+                            const clientRec = ensureIP(dstIP);
+                            if (clientRec) clientRec.dnsNx++;
+                        }
+                    } else if (tx) {
+                        dnsTxn.set(key, { queryNo: packet.no, queryTime: packet.absTimestamp || 0, responded: false, responseNo: null, client: srcIP, server: dstIP, packet });
+                    }
+                }
+
+                if (packet.protocol === 'DHCP' && packet.layers?.dhcp) {
+                    const type = (packet.layers.dhcp.messageType || '').toLowerCase();
+                    const key = srcMAC || srcIP || 'unknown';
+                    if (!dhcpByClient.has(key)) dhcpByClient.set(key, { discover:0, request:0, nak:0, packetNos:[], ip:srcIP, mac:srcMAC, examples:[] });
+                    const rec = dhcpByClient.get(key);
+                    if (type === 'discover') rec.discover++;
+                    if (type === 'request') rec.request++;
+                    if (type === 'nak') rec.nak++;
+                    pushUniqueLimited(rec.packetNos, packet.no, maxNo);
+                    if (rec.examples.length < maxEx) rec.examples.push({ no: packet.no, summary: summarizePacket(packet) });
+                }
+
+                if (packet.protocol === 'ARP' && packet.layers?.arp) {
+                    const arp = packet.layers.arp;
+                    if (arp.operation === 'Request') {
+                        if (src) src.arpReq++;
+                        const t = arp.targetIP || '';
+                        if (t.endsWith('.1') || t.endsWith('.254')) {
+                            if (!arpGatewayReq.has(t)) arpGatewayReq.set(t, { count:0, packetNos:[], requester: arp.senderIP || srcIP, examples:[] });
+                            const rec = arpGatewayReq.get(t);
+                            rec.count++;
+                            pushUniqueLimited(rec.packetNos, packet.no, maxNo);
+                            if (rec.examples.length < maxEx) rec.examples.push({ no: packet.no, summary: summarizePacket(packet) });
+                        }
+                    }
+                    if (arp.operation === 'Reply' && src) src.arpRep++;
+                }
+
+                if (packet.protocol === 'ICMP' && packet.layers?.icmp) {
+                    const tn = packet.layers.icmp.typeName || '';
+                    if (tn === 'Destination Unreachable' || tn === 'Time Exceeded') {
+                        const key = `${srcIP}->${dstIP}|${tn}`;
+                        if (!icmpHard.has(key)) icmpHard.set(key, { count:0, packetNos:[], examples:[], srcIP, dstIP, type: tn });
+                        const rec = icmpHard.get(key);
+                        rec.count++;
+                        pushUniqueLimited(rec.packetNos, packet.no, maxNo);
+                        if (rec.examples.length < maxEx) rec.examples.push({ no: packet.no, summary: summarizePacket(packet) });
+                        const srcRec = ensureIP(srcIP);
+                        if (srcRec) srcRec.icmpUnreach++;
+                    }
+                }
+            });
+
+            const packetByNo = new Map(packets.map(pkt => [pkt.no, pkt]));
+            const createFinding = (finding) => findings.push(finding);
+            const timeOf = (no) => {
+                const pkt = packetByNo.get(no);
+                return pkt ? `${parseFloat(pkt.timestamp || 0).toFixed(6)}s` : 'N/A';
+            };
+
+            for (const [ip, rec] of byIP.entries()) {
+                const ratio1 = rec.sentPkts / Math.max(rec.recvPkts, 1);
+                const ratio2 = rec.recvPkts / Math.max(rec.sentPkts, 1);
+                if (ratio1 >= PCAP_FINDING_THRESHOLDS.ONE_WAY_RATIO_THRESHOLD || ratio2 >= PCAP_FINDING_THRESHOLDS.ONE_WAY_RATIO_THRESHOLD) {
+                    createFinding({ id: `capture-oneway-${ip}`, category: 'Capture', severity: ratio1 > 100 || ratio2 > 100 ? 'medium' : 'low', title: 'Capture looks one-directional / incomplete', impact: 'Traffic is heavily one-way. This limits ability to confirm ACKs/replies and may hide packet loss or RTT issues.', affected: [{ ip, note: 'traffic imbalance observed' }], evidence: { count: rec.sentPkts + rec.recvPkts, firstSeen: timeOf(rec.exampleNos[0]), lastSeen: timeOf(rec.exampleNos[rec.exampleNos.length - 1]), packetNos: rec.exampleNos.slice(0,maxNo), examples: rec.exampleNos.slice(0,maxEx).map(no => ({ no, summary: summarizePacket(packetByNo.get(no) || {protocol:'N/A',source:'',destination:'',info:''}) })) }, suggestedNextChecks: ['Capture both directions on the same point.', 'Correlate with interface counters for drops.'], actions: { filterText: ip, protocol: '', jumpToPacketNo: rec.exampleNos[0] } });
+                }
+            }
+
+            for (const flow of flows.values()) {
+                const revKey = `${flow.dstIP}:${flow.dstPort}->${flow.srcIP}:${flow.srcPort}`;
+                const rev = flows.get(revKey);
+                const synAck = (rev ? rev.synAck : 0) + flow.synAck;
+                if (flow.syn >= PCAP_FINDING_THRESHOLDS.TCP_FAILED_HANDSHAKE_SYN && synAck === 0) {
+                    createFinding({ id:`tcp-handshake-${flow.srcIP}-${flow.srcPort}-${flow.dstIP}-${flow.dstPort}`, category:'TCP', severity:'high', title:'Connection attempts not completing', impact:'Clients may experience connection timeouts or app sessions that never establish.', affected:[{ ip:flow.srcIP, port:flow.srcPort, note:'client' },{ ip:flow.dstIP, port:flow.dstPort, note:'server' }], evidence:{ count:flow.syn, firstSeen:timeOf(flow.packetNos[0]), lastSeen:timeOf(flow.packetNos[flow.packetNos.length-1]), packetNos:flow.packetNos.slice(0,maxNo), examples:flow.packetNos.slice(0,maxEx).map(no=>({no, summary:summarizePacket(packetByNo.get(no) || { protocol: 'N/A', source: '', destination: '', info: '' })})) }, suggestedNextChecks:['Check server reachability and firewall policies.','Verify SYN/ACK return path.'], actions:{ filterText:`${flow.dstIP} SYN`, protocol:'TCP', jumpToPacketNo:flow.packetNos[0] } });
+                }
+                if (flow.rst >= PCAP_FINDING_THRESHOLDS.TCP_RST_THRESHOLD) {
+                    createFinding({ id:`tcp-rst-${flow.srcIP}-${flow.dstIP}-${flow.srcPort}-${flow.dstPort}`, category:'TCP', severity:'high', title:'Excessive TCP resets detected', impact:'Active sessions may abruptly disconnect and force reconnects.', affected:[{ ip:flow.srcIP, port:flow.srcPort },{ ip:flow.dstIP, port:flow.dstPort }], evidence:{ count:flow.rst, firstSeen:timeOf(flow.packetNos[0]), lastSeen:timeOf(flow.packetNos[flow.packetNos.length-1]), packetNos:flow.packetNos.slice(0,maxNo), examples:flow.packetNos.slice(0,maxEx).map(no=>({no, summary:summarizePacket(packetByNo.get(no) || { protocol: 'N/A', source: '', destination: '', info: '' })})) }, suggestedNextChecks:['Inspect application/server reset reasons.','Check middlebox timeout/reject policies.'], actions:{ filterText:`${flow.srcIP} RST`, protocol:'TCP', jumpToPacketNo:flow.packetNos[0] } });
+                }
+            }
+
+            for (const [resolver, rec] of dnsNxByResponder.entries()) {
+                if (rec.count >= PCAP_FINDING_THRESHOLDS.DNS_NXDOMAIN_THRESHOLD) {
+                    createFinding({ id:`dns-nxdomain-${resolver}`, category:'DNS', severity:'medium', title:'High NXDOMAIN rate', impact:'Users may see slow page/app loads or failed hostname lookups.', affected:[{ ip:resolver, note:'DNS responder' },{ ip:rec.client, note:'client(s)' }], evidence:{ count:rec.count, firstSeen:timeOf(rec.packetNos[0]), lastSeen:timeOf(rec.packetNos[rec.packetNos.length-1]), packetNos:rec.packetNos, examples:rec.examples }, suggestedNextChecks:['Review queried domains for typos/misconfigurations.','Check resolver forwarder health.'], actions:{ filterText:resolver || 'DNS', protocol:'DNS', jumpToPacketNo:rec.packetNos[0] } });
+                }
+            }
+
+            for (const tx of dnsTxn.values()) {
+                if (!tx.responded) {
+                    const key = tx.client || 'unknown-client';
+                    if (!dnsUnansweredByClient.has(key)) dnsUnansweredByClient.set(key, { count:0, packetNos:[], examples:[], server: tx.server });
+                    const rec = dnsUnansweredByClient.get(key);
+                    rec.count++;
+                    pushUniqueLimited(rec.packetNos, tx.queryNo, maxNo);
+                    if (rec.examples.length < maxEx) rec.examples.push({ no: tx.queryNo, summary: summarizePacket(tx.packet) });
+                }
+            }
+            for (const [client, rec] of dnsUnansweredByClient.entries()) {
+                if (rec.count >= PCAP_FINDING_THRESHOLDS.DNS_UNANSWERED_THRESHOLD) {
+                    createFinding({ id:`dns-unanswered-${client}`, category:'DNS', severity:'high', title:'Many DNS queries with no responses', impact:'Name resolution delays can cause broad browsing/app timeouts.', affected:[{ ip:client, note:'query source' }, { ip:rec.server, note:'DNS server' }], evidence:{ count:rec.count, firstSeen:timeOf(rec.packetNos[0]), lastSeen:timeOf(rec.packetNos[rec.packetNos.length-1]), packetNos:rec.packetNos, examples:rec.examples }, suggestedNextChecks:['Check DNS server reachability.','Verify ACLs and UDP/53 path.'], actions:{ filterText:client, protocol:'DNS', jumpToPacketNo:rec.packetNos[0] } });
+                }
+            }
+
+            for (const rec of dhcpByClient.values()) {
+                const churn = rec.discover + rec.request;
+                if (churn >= PCAP_FINDING_THRESHOLDS.DHCP_BURST_THRESHOLD || rec.nak > 0) {
+                    createFinding({ id:`dhcp-churn-${rec.mac || rec.ip}`, category:'DHCP', severity:rec.nak > 0 ? 'high' : 'medium', title:'Repeated DHCP requests (possible lease instability)', impact:'Devices may briefly lose connectivity while repeatedly renewing or requesting leases.', affected:[{ ip:rec.ip, mac:rec.mac, note:'client' }], evidence:{ count:churn + rec.nak, firstSeen:timeOf(rec.packetNos[0]), lastSeen:timeOf(rec.packetNos[rec.packetNos.length-1]), packetNos:rec.packetNos, examples:rec.examples }, suggestedNextChecks:['Check DHCP scope utilization and lease time.','Inspect AP/client reconnect behavior.'], actions:{ filterText:`DHCP ${rec.ip || rec.mac || ''}`.trim(), protocol:'DHCP', jumpToPacketNo:rec.packetNos[0] } });
+                }
+            }
+
+            rogueDevices.forEach((device, idx) => {
+                const matchNos = packets.filter(p => (device.ip && `${p.source} ${p.destination}`.includes(device.ip)) || (device.mac && `${p.source} ${p.destination}`.includes(device.mac))).slice(0,maxNo).map(p => p.no);
+                createFinding({ id:`security-rogue-${idx}-${device.type}`, category:'Security', severity:device.severity === 'critical' ? 'high' : 'medium', title:device.description, impact:'Potential rogue infrastructure can redirect or intercept user traffic.', affected:[{ ip:device.ip, mac:device.mac, note:device.type }], evidence:{ count:matchNos.length, firstSeen:timeOf(matchNos[0]), lastSeen:timeOf(matchNos[matchNos.length-1]), packetNos:matchNos, examples:matchNos.slice(0,maxEx).map(no=>({no, summary:summarizePacket(packetByNo.get(no) || { protocol: 'N/A', source: '', destination: '', info: '' })})) }, suggestedNextChecks:['Validate device ownership and isolate suspicious endpoint.'], actions:{ filterText:device.ip || device.mac || 'ARP', protocol: device.type === 'dns' ? 'DNS' : 'ARP', jumpToPacketNo:matchNos[0] } });
+            });
+
+            for (const [gateway, rec] of arpGatewayReq.entries()) {
+                if (rec.count >= PCAP_FINDING_THRESHOLDS.ARP_GATEWAY_REQUEST_THRESHOLD) {
+                    createFinding({ id:`arp-gateway-${gateway}`, category:'ARP', severity:'medium', title:'Gateway ARP request burst', impact:'Frequent ARP resolution attempts may indicate gateway instability or L2 disruption.', affected:[{ ip:gateway, note:'gateway target' },{ ip:rec.requester, note:'requester' }], evidence:{ count:rec.count, firstSeen:timeOf(rec.packetNos[0]), lastSeen:timeOf(rec.packetNos[rec.packetNos.length-1]), packetNos:rec.packetNos, examples:rec.examples }, suggestedNextChecks:['Check gateway CPU/interface health.','Inspect LAN for ARP storms/spoofing.'], actions:{ filterText:gateway, protocol:'ARP', jumpToPacketNo:rec.packetNos[0] } });
+                }
+            }
+
+            if (stats?.pppoe) {
+                const pp = stats.pppoe;
+                if (pp.padi >= PCAP_FINDING_THRESHOLDS.PPPOE_PADI_THRESHOLD && pp.pads === 0) {
+                    createFinding({ id:'pppoe-padi-no-pads', category:'PPPoE', severity:'high', title:'PPPoE discovery failing (PADI with no PADS)', impact:'Customers can lose internet access when PPPoE discovery cannot complete.', affected:[{ note:'WAN PPPoE session' }], evidence:{ count:pp.padi, firstSeen:timeOf(pppoePacketNos[0]), lastSeen:timeOf(pppoePacketNos[pppoePacketNos.length-1]), packetNos:pppoePacketNos.slice(0,maxNo), examples:pppoePacketNos.slice(0,maxEx).map(no=>({no, summary:summarizePacket(packetByNo.get(no) || { protocol: 'N/A', source: '', destination: '', info: '' })})) }, suggestedNextChecks:['Verify ISP PPPoE credentials and BRAS reachability.'], actions:{ filterText:'PPPoE PADI', protocol:'PPPoE', jumpToPacketNo:pppoePacketNos[0] } });
+                }
+                if (pp.padt >= PCAP_FINDING_THRESHOLDS.PPPOE_PADT_THRESHOLD) {
+                    createFinding({ id:'pppoe-padt-seen', category:'PPPoE', severity:pp.padt > 3 ? 'high' : 'medium', title:'PPPoE session terminated (PADT seen)', impact:'Session terminations can cause brief to prolonged internet interruptions.', affected:[{ note:'WAN PPPoE session' }], evidence:{ count:pp.padt, firstSeen:timeOf(pppoePacketNos[0]), lastSeen:timeOf(pppoePacketNos[pppoePacketNos.length-1]), packetNos:pppoePacketNos.slice(0,maxNo), examples:pppoePacketNos.slice(0,maxEx).map(no=>({no, summary:summarizePacket(packetByNo.get(no) || { protocol: 'N/A', source: '', destination: '', info: '' })})) }, suggestedNextChecks:['Correlate PADT timing with line-quality or authentication events.'], actions:{ filterText:'PPPoE PADT', protocol:'PPPoE', jumpToPacketNo:pppoePacketNos[0] } });
+                }
+                const discoveryTotal = pp.padi + pp.pado + pp.padr + pp.pads;
+                if (discoveryTotal >= (PCAP_FINDING_THRESHOLDS.PPPOE_PADI_THRESHOLD * 3)) {
+                    createFinding({ id:'pppoe-reconnect-loop', category:'PPPoE', severity:'medium', title:'PPPoE reconnect loop indicators', impact:'Repeated PPPoE discovery can appear as intermittent disconnect/reconnect behavior.', affected:[{ note:'WAN PPPoE session' }], evidence:{ count:discoveryTotal, firstSeen:timeOf(pppoePacketNos[0]), lastSeen:timeOf(pppoePacketNos[pppoePacketNos.length-1]), packetNos:pppoePacketNos.slice(0,maxNo), examples:pppoePacketNos.slice(0,maxEx).map(no=>({no, summary:summarizePacket(packetByNo.get(no) || { protocol: 'N/A', source: '', destination: '', info: '' })})) }, suggestedNextChecks:['Check PPPoE keepalive and upstream stability.'], actions:{ filterText:'PPPoE', protocol:'PPPoE', jumpToPacketNo:pppoePacketNos[0] } });
+                }
+            }
+
+            for (const [k, rec] of icmpHard.entries()) {
+                if (rec.count >= 3) {
+                    createFinding({ id:`icmp-hard-${k}`, category:'Capture', severity:rec.count > 10 ? 'high' : 'medium', title:`ICMP hard signal: ${rec.type}`, impact:'Routing/MTU/TTL issues may cause traffic blackholes or inconsistent latency.', affected:[{ ip:rec.srcIP, note:'icmp source' },{ ip:rec.dstIP, note:'icmp target' }], evidence:{ count:rec.count, firstSeen:timeOf(rec.packetNos[0]), lastSeen:timeOf(rec.packetNos[rec.packetNos.length-1]), packetNos:rec.packetNos, examples:rec.examples }, suggestedNextChecks:['Trace route path and verify MTU.'], actions:{ filterText:`ICMP ${rec.dstIP}`.trim(), protocol:'ICMP', jumpToPacketNo:rec.packetNos[0] } });
+                }
+            }
+
+            findings.sort((a,b) => ({high:3, medium:2, low:1}[b.severity] - ({high:3, medium:2, low:1}[a.severity])) || ((b.evidence?.count||0)-(a.evidence?.count||0)));
+            const summary = findings.reduce((acc,f)=>{acc.total++;acc[f.severity]=(acc[f.severity]||0)+1;return acc;},{total:0,high:0,medium:0,low:0});
+            return { findings, summary };
         }
 
         function applyPCAPFilters() {
@@ -4376,6 +4714,7 @@
             }
 
             patterns.findings.sort((a, b) => ({ high: 3, medium: 2, low: 1 }[b.severity] - ({ high: 3, medium: 2, low: 1 }[a.severity])) || ((b.evidence?.count || 0) - (a.evidence?.count || 0)));
+            patterns.findings = patterns.findings.filter(finding => finding.severity === 'high');
             return patterns;
         }
 
@@ -4522,14 +4861,19 @@
             if (!currentEventStats || !currentEventStats.findings) return;
             const finding = currentEventStats.findings.find(item => item.id === findingId);
             if (!finding) return;
-            const keys = finding.filterKeys || {};
+            activeFindingFilter = finding.filterKeys || {};
             const terms = [];
             ['mac', 'ip', 'iface', 'keywords'].forEach(key => {
-                (keys[key] || []).forEach(value => {
+                (activeFindingFilter[key] || []).forEach(value => {
                     if (value && !terms.includes(value)) terms.push(value);
                 });
             });
             document.getElementById('eventFilter').value = terms.join(' ');
+            const categorySelect = document.getElementById('categoryFilter');
+            const severitySelect = document.getElementById('severityFilter');
+            categorySelect.value = Array.from(categorySelect.options).some(opt => opt.value === finding.category) ? finding.category : '';
+            const severityValue = finding.severity ? finding.severity.charAt(0).toUpperCase() + finding.severity.slice(1) : '';
+            severitySelect.value = Array.from(severitySelect.options).some(opt => opt.value === severityValue) ? severityValue : ''; 
             applyEventFilters();
             const section = document.getElementById('eventViewer');
             if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -4561,7 +4905,7 @@
             const html = `
                 <div class="findings-title">
                     <strong>🧭 Investigation Findings (${findings.length})</strong>
-                    <span class="text-muted" style="font-size: 11px;">Click “Filter Events” to focus evidence</span>
+                    <span class="text-muted" style="font-size: 11px;">Click “Filter Events” to focus evidence${activeFindingFilter ? ' • filter active' : ''}</span>
                 </div>
                 <div class="findings-list">
                     ${visibleFindings.map(finding => `
@@ -4578,7 +4922,6 @@
                                 <strong>Evidence:</strong> ${finding.evidence?.count || 0} events • ${finding.evidence?.firstSeen || 'N/A'} → ${finding.evidence?.lastSeen || 'N/A'}
                                 ${(finding.evidence?.examples || []).map(example => `<div class="finding-example">#${example.no}: ${example.details}</div>`).join('')}
                             </div>
-                            <div class="finding-meta"><strong>Next checks:</strong> ${(finding.suggestedNextChecks || []).join(' ')}</div>
                             <div class="finding-actions">
                                 <button class="finding-btn" onclick="applyFindingFilter('${finding.id}')">Filter Events</button>
                                 <button class="finding-btn" onclick="clearEventFilters()">Clear Filter</button>
@@ -4609,13 +4952,29 @@
             const filterText = document.getElementById('eventFilter').value.toLowerCase().trim();
             const categoryFilter = document.getElementById('categoryFilter').value;
             const severityFilter = document.getElementById('severityFilter').value;
+            const textTerms = filterText ? filterText.split(/\s+/).filter(Boolean) : [];
 
             filteredEvents = allEvents.filter(event => {
                 if (categoryFilter && event.category !== categoryFilter) return false;
                 if (severityFilter && event.severity !== severityFilter) return false;
-                if (filterText) {
-                    const searchIn = `${event.details} ${event.category} ${event.severity}`.toLowerCase();
-                    return searchIn.includes(filterText);
+
+                const searchIn = `${event.details} ${event.category} ${event.severity} ${event.raw || ''}`.toLowerCase();
+
+                if (activeFindingFilter) {
+                    const keys = activeFindingFilter;
+                    const terms = [];
+                    ['mac', 'ip', 'iface', 'keywords'].forEach(key => {
+                        (keys[key] || []).forEach(value => {
+                            const normalized = (value || '').toString().trim().toLowerCase();
+                            if (normalized && !terms.includes(normalized)) terms.push(normalized);
+                        });
+                    });
+                    if (terms.length > 0 && !terms.some(term => searchIn.includes(term))) return false;
+                }
+
+                if (textTerms.length > 0) {
+                    if (activeFindingFilter) return textTerms.some(term => searchIn.includes(term));
+                    return textTerms.every(term => searchIn.includes(term));
                 }
                 return true;
             });
@@ -4624,14 +4983,13 @@
         }
 
         function clearEventFilters() {
+            activeFindingFilter = null;
             document.getElementById('eventFilter').value = '';
-            if (document.getElementById('findingsContent')) {
-                document.getElementById('findingsContent').innerHTML = '';
-            }
             document.getElementById('categoryFilter').value = '';
             document.getElementById('severityFilter').value = '';
             filteredEvents = allEvents;
             renderEventTable();
+            renderFindings((currentEventStats && currentEventStats.findings) || []);
         }
 
         function reset() {
@@ -4644,6 +5002,8 @@
             ipEndpoints.clear();
             macEndpoints.clear();
             rogueDevices = [];
+            pcapFindings = [];
+            pcapFindingsSummary = { total: 0, high: 0, medium: 0, low: 0 };
             
             document.getElementById('uploadSection').style.display = 'block';
             document.getElementById('pcapViewer').classList.remove('show');
@@ -4653,6 +5013,7 @@
             document.getElementById('fileInput').value = '';
             document.getElementById('packetFilter').value = '';
             document.getElementById('eventFilter').value = '';
+            activeFindingFilter = null;
             if (document.getElementById('findingsContent')) {
                 document.getElementById('findingsContent').innerHTML = '';
             }
