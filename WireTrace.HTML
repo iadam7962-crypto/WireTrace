@@ -644,10 +644,11 @@
 
         .findings-section {
             margin: 15px 20px 20px;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(0, 212, 255, 0.35);
             border-radius: 10px;
-            background: var(--bg-card);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(220, 40, 87, 0.08) 45%, var(--bg-card));
             padding: 14px;
+            box-shadow: 0 0 0 1px rgba(220, 40, 87, 0.12), 0 8px 20px rgba(0, 0, 0, 0.35);
         }
 
         .findings-title {
@@ -666,9 +667,9 @@
         }
 
         .finding-card {
-            border: 1px solid var(--border);
+            border: 1px solid rgba(0, 212, 255, 0.25);
             border-radius: 8px;
-            background: var(--bg-card-dark);
+            background: linear-gradient(120deg, rgba(10, 14, 20, 0.98), rgba(20, 25, 31, 0.96));
             padding: 10px;
             font-size: 12px;
         }
@@ -738,13 +739,15 @@
             border: 1px solid var(--border);
             font-size: 11px;
             cursor: pointer;
-            background: var(--bg-primary);
+            background: rgba(10, 14, 20, 0.9);
             color: var(--text-primary);
+            transition: all 0.2s ease;
         }
 
         .finding-btn:hover {
             border-color: var(--cyan);
             color: var(--cyan);
+            background: rgba(0, 212, 255, 0.08);
         }
 
         .finding-example {
@@ -2149,6 +2152,7 @@
         let stats = {};
         let currentEventStats = null;
         let findingsVisibleCount = 10;
+        let activeFindingFilter = null;
         
         // Enhanced PCAP analysis
         let ipEndpoints = new Map();
@@ -4376,6 +4380,7 @@
             }
 
             patterns.findings.sort((a, b) => ({ high: 3, medium: 2, low: 1 }[b.severity] - ({ high: 3, medium: 2, low: 1 }[a.severity])) || ((b.evidence?.count || 0) - (a.evidence?.count || 0)));
+            patterns.findings = patterns.findings.filter(finding => finding.severity === 'high');
             return patterns;
         }
 
@@ -4522,14 +4527,10 @@
             if (!currentEventStats || !currentEventStats.findings) return;
             const finding = currentEventStats.findings.find(item => item.id === findingId);
             if (!finding) return;
-            const keys = finding.filterKeys || {};
-            const terms = [];
-            ['mac', 'ip', 'iface', 'keywords'].forEach(key => {
-                (keys[key] || []).forEach(value => {
-                    if (value && !terms.includes(value)) terms.push(value);
-                });
-            });
-            document.getElementById('eventFilter').value = terms.join(' ');
+            activeFindingFilter = finding.filterKeys || {};
+            document.getElementById('eventFilter').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('severityFilter').value = '';
             applyEventFilters();
             const section = document.getElementById('eventViewer');
             if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -4561,7 +4562,7 @@
             const html = `
                 <div class="findings-title">
                     <strong>🧭 Investigation Findings (${findings.length})</strong>
-                    <span class="text-muted" style="font-size: 11px;">Click “Filter Events” to focus evidence</span>
+                    <span class="text-muted" style="font-size: 11px;">Click “Filter Events” to focus evidence${activeFindingFilter ? ' • filter active' : ''}</span>
                 </div>
                 <div class="findings-list">
                     ${visibleFindings.map(finding => `
@@ -4578,7 +4579,6 @@
                                 <strong>Evidence:</strong> ${finding.evidence?.count || 0} events • ${finding.evidence?.firstSeen || 'N/A'} → ${finding.evidence?.lastSeen || 'N/A'}
                                 ${(finding.evidence?.examples || []).map(example => `<div class="finding-example">#${example.no}: ${example.details}</div>`).join('')}
                             </div>
-                            <div class="finding-meta"><strong>Next checks:</strong> ${(finding.suggestedNextChecks || []).join(' ')}</div>
                             <div class="finding-actions">
                                 <button class="finding-btn" onclick="applyFindingFilter('${finding.id}')">Filter Events</button>
                                 <button class="finding-btn" onclick="clearEventFilters()">Clear Filter</button>
@@ -4609,14 +4609,27 @@
             const filterText = document.getElementById('eventFilter').value.toLowerCase().trim();
             const categoryFilter = document.getElementById('categoryFilter').value;
             const severityFilter = document.getElementById('severityFilter').value;
+            const textTerms = filterText ? filterText.split(/\s+/).filter(Boolean) : [];
 
             filteredEvents = allEvents.filter(event => {
                 if (categoryFilter && event.category !== categoryFilter) return false;
                 if (severityFilter && event.severity !== severityFilter) return false;
-                if (filterText) {
-                    const searchIn = `${event.details} ${event.category} ${event.severity}`.toLowerCase();
-                    return searchIn.includes(filterText);
+
+                const searchIn = `${event.details} ${event.category} ${event.severity} ${event.raw || ''}`.toLowerCase();
+
+                if (activeFindingFilter) {
+                    const keys = activeFindingFilter;
+                    const terms = [];
+                    ['mac', 'ip', 'iface', 'keywords'].forEach(key => {
+                        (keys[key] || []).forEach(value => {
+                            const normalized = (value || '').toString().trim().toLowerCase();
+                            if (normalized && !terms.includes(normalized)) terms.push(normalized);
+                        });
+                    });
+                    if (terms.length > 0 && !terms.some(term => searchIn.includes(term))) return false;
                 }
+
+                if (textTerms.length > 0) return textTerms.every(term => searchIn.includes(term));
                 return true;
             });
 
@@ -4624,14 +4637,13 @@
         }
 
         function clearEventFilters() {
+            activeFindingFilter = null;
             document.getElementById('eventFilter').value = '';
-            if (document.getElementById('findingsContent')) {
-                document.getElementById('findingsContent').innerHTML = '';
-            }
             document.getElementById('categoryFilter').value = '';
             document.getElementById('severityFilter').value = '';
             filteredEvents = allEvents;
             renderEventTable();
+            renderFindings((currentEventStats && currentEventStats.findings) || []);
         }
 
         function reset() {
@@ -4653,6 +4665,7 @@
             document.getElementById('fileInput').value = '';
             document.getElementById('packetFilter').value = '';
             document.getElementById('eventFilter').value = '';
+            activeFindingFilter = null;
             if (document.getElementById('findingsContent')) {
                 document.getElementById('findingsContent').innerHTML = '';
             }
