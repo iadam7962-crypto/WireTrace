@@ -536,9 +536,6 @@
             background: var(--bg-card);
         }
 
-        .sidebar-tab.severity-high { color: #fecaca; }
-        .sidebar-tab.severity-medium { color: #fde68a; }
-        .sidebar-tab.severity-low { color: #bfdbfe; }
 
         .sidebar-content {
             display: none;
@@ -1569,6 +1566,10 @@
                         </div>
                     </div>
                 </div>
+
+                <section id="pcapFindingsSection" class="findings-section">
+                    <div id="pcapFindingsContent"></div>
+                </section>
 
                 <div class="viewer-footer">
                     <button class="btn-reset" onclick="reset()">🔄 Load New File</button>
@@ -3750,8 +3751,7 @@
             const tabMap = {
                 details: { button: 0, panel: 'detailsTab' },
                 endpoints: { button: 1, panel: 'endpointsTab' },
-                security: { button: 2, panel: 'securityTab' },
-                findings: { button: 3, panel: 'findingsTab' }
+                security: { button: 2, panel: 'securityTab' }
             };
 
             document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
@@ -3765,28 +3765,20 @@
         }
 
 
-        function updatePCAPFindingsTabLabel() {
-            const btn = document.getElementById('pcapFindingsTabBtn');
-            if (!btn) return;
-            btn.textContent = `🧭 Findings (${pcapFindingsSummary.total || 0})`;
-            btn.classList.remove('severity-high', 'severity-medium', 'severity-low');
-            if (pcapFindingsSummary.high > 0) btn.classList.add('severity-high');
-            else if (pcapFindingsSummary.medium > 0) btn.classList.add('severity-medium');
-            else if (pcapFindingsSummary.low > 0) btn.classList.add('severity-low');
-        }
-
         function renderPCAPFindings() {
-            updatePCAPFindingsTabLabel();
             const container = document.getElementById('pcapFindingsContent');
             if (!container) return;
 
             if (!pcapFindings || pcapFindings.length === 0) {
-                container.innerHTML = '<p class="text-muted">No suspicious patterns detected.</p>';
+                container.innerHTML = `
+                    <div class="findings-title"><strong>🧭 Investigation Findings (0)</strong></div>
+                    <p class="text-muted">No suspicious patterns detected.</p>
+                `;
                 return;
             }
 
-            const summary = `<div class="finding-meta" style="margin-bottom:10px;"><strong>Total:</strong> ${pcapFindingsSummary.total} • <span style="color:#fecaca;">High ${pcapFindingsSummary.high}</span> • <span style="color:#fde68a;">Medium ${pcapFindingsSummary.medium}</span> • <span style="color:#bfdbfe;">Low ${pcapFindingsSummary.low}</span></div>`;
-            container.innerHTML = summary + pcapFindings.map(finding => `
+            const summary = `<div class="findings-title"><strong>🧭 Investigation Findings (${pcapFindingsSummary.total})</strong><span class="text-muted" style="font-size:11px;">High ${pcapFindingsSummary.high} • Medium ${pcapFindingsSummary.medium} • Low ${pcapFindingsSummary.low}</span></div>`;
+            container.innerHTML = summary + `<div class="findings-list">` + pcapFindings.map(finding => `
                 <article class="finding-card" style="margin-bottom:10px;">
                     <div class="finding-header">
                         <div><strong>${finding.title}</strong> <span class="text-muted">(${finding.category})</span></div>
@@ -3802,7 +3794,7 @@
                         ${finding.actions && finding.actions.jumpToPacketNo ? `<button class="finding-btn" onclick="jumpToPCAPPacket(${finding.actions.jumpToPacketNo})">Jump to example</button>` : ''}
                     </div>
                 </article>
-            `).join('');
+            `).join('') + `</div>`;
         }
 
         function applyPCAPFindingAction(findingId) {
@@ -3821,8 +3813,7 @@
         }
 
         function jumpToPCAPFindings() {
-            switchSidebarTab('findings');
-            const panel = document.getElementById('findingsTab');
+            const panel = document.getElementById('pcapFindingsSection');
             if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -4970,6 +4961,11 @@
                         });
                     });
                     if (terms.length > 0 && !terms.some(term => searchIn.includes(term))) return false;
+                }
+
+                if (textTerms.length > 0) {
+                    if (activeFindingFilter) return textTerms.some(term => searchIn.includes(term));
+                    return textTerms.every(term => searchIn.includes(term));
                 }
 
                 if (textTerms.length > 0) {
