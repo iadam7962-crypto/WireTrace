@@ -3770,8 +3770,13 @@
                 return;
             }
 
-            const summary = `<div class="findings-title"><strong>🧭 Investigation Findings (${pcapFindingsSummary.total})</strong><span class="text-muted" style="font-size:11px;">High ${pcapFindingsSummary.high} • Medium ${pcapFindingsSummary.medium} • Low ${pcapFindingsSummary.low}</span></div>`;
-            container.innerHTML = summary + `<div class="findings-list">` + pcapFindings.map(finding => `
+            const highSeverityFindings = pcapFindings.filter(finding => finding.severity === 'high');
+            const summary = `<div class="findings-title"><strong>🧭 Investigation Findings (${highSeverityFindings.length})</strong><span class="text-muted" style="font-size: 11px;">Click “Filter packets” to focus evidence</span></div>`;
+            if (highSeverityFindings.length === 0) {
+                container.innerHTML = summary + `<p class="text-muted">No high severity patterns detected.</p>`;
+                return;
+            }
+            container.innerHTML = summary + `<div class="findings-list">` + highSeverityFindings.map(finding => `
                 <article class="finding-card" style="margin-bottom:10px;">
                     <div class="finding-header">
                         <div><strong>${finding.title}</strong> <span class="text-muted">(${finding.category})</span></div>
@@ -3784,7 +3789,7 @@
                     </div>
                     <div class="finding-actions">
                         <button class="finding-btn" onclick="applyPCAPFindingAction('${finding.id}')">Filter packets</button>
-                        ${finding.actions && finding.actions.jumpToPacketNo ? `<button class="finding-btn" onclick="jumpToPCAPPacket(${finding.actions.jumpToPacketNo})">Jump to example</button>` : ''}
+                        <button class="finding-btn" onclick="clearPCAPFilters()">Clear Filter</button>
                     </div>
                 </article>
             `).join('') + `</div>`;
@@ -4039,8 +4044,9 @@
             }
 
             findings.sort((a,b) => ({high:3, medium:2, low:1}[b.severity] - ({high:3, medium:2, low:1}[a.severity])) || ((b.evidence?.count||0)-(a.evidence?.count||0)));
-            const summary = findings.reduce((acc,f)=>{acc.total++;acc[f.severity]=(acc[f.severity]||0)+1;return acc;},{total:0,high:0,medium:0,low:0});
-            return { findings, summary };
+            const highFindings = findings.filter(finding => finding.severity === 'high');
+            const summary = highFindings.reduce((acc,f)=>{acc.total++;acc[f.severity]=(acc[f.severity]||0)+1;return acc;},{total:0,high:0,medium:0,low:0});
+            return { findings: highFindings, summary };
         }
 
         function applyPCAPFilters() {
