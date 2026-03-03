@@ -515,7 +515,12 @@
 
         .sidebar-tab {
             flex: 1;
-            padding: 15px;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px;
             text-align: center;
             cursor: pointer;
             font-size: 13px;
@@ -1022,6 +1027,14 @@
         }
 
         .ref-guide.show {
+            display: block;
+        }
+
+        .findings-page {
+            display: none;
+        }
+
+        .findings-page.show {
             display: block;
         }
 
@@ -1695,7 +1708,6 @@
                             <div class="sidebar-tab active" data-pcap-tab="details" onclick="switchSidebarTab('details')">📦 Details</div>
                             <div class="sidebar-tab" data-pcap-tab="endpoints" onclick="switchSidebarTab('endpoints')">🌐 Endpoints</div>
                             <div class="sidebar-tab" data-pcap-tab="security" onclick="switchSidebarTab('security')">🛡️ Security</div>
-                            <div class="sidebar-tab" data-pcap-tab="findings" onclick="switchSidebarTab('findings')">🧭 Findings</div>
                         </div>
 
                         <div class="sidebar-content active" id="detailsTab" data-pcap-panel="details">
@@ -1731,9 +1743,6 @@
                             </div>
                         </div>
 
-                        <div class="sidebar-content" id="pcapFindingsTab" data-pcap-panel="findings">
-                            <div id="pcapFindingsContent"></div>
-                        </div>
 
                     </div>
                 </div>
@@ -1802,9 +1811,6 @@
                             </div>
                         </div>
 
-                        <div class="sidebar-content" data-event-panel="findings">
-                            <div id="findingsContent"></div>
-                        </div>
                     </div>
                 </div>
 
@@ -1813,6 +1819,29 @@
                     <span class="filename" id="eventFilename"></span>
                 </div>
             </div>
+        </div>
+
+        <!-- Investigation Findings Page -->
+        <div id="findingsPage" class="findings-page">
+            <header class="header">
+                <div class="header-content">
+                    <a href="#" class="back-link" onclick="showMainTool(); return false;">
+                        ← Back to VodaTrace
+                    </a>
+                    <h1>
+                        <span class="wire">Voda</span><span class="trace">Trace</span> Investigation Findings
+                    </h1>
+                    <p class="subtitle">Dedicated findings view for easier investigation workflows</p>
+                </div>
+            </header>
+
+            <section id="pcapFindingsSection" class="findings-section" style="display:none">
+                <div id="pcapFindingsContent"></div>
+            </section>
+
+            <section id="findingsSection" class="findings-section" style="display:none">
+                <div id="findingsContent"></div>
+            </section>
         </div>
 
         <!-- TCP Stream Modal -->
@@ -2328,6 +2357,7 @@
     <script>
         // Global state
         let mode = null;
+        let activeFindingsMode = null;
         let allPackets = [];
         let filteredPackets = [];
         let allEvents = [];
@@ -2374,13 +2404,25 @@
         // Show/hide sections
         function showReferenceGuide() {
             document.getElementById('mainTool').style.display = 'none';
+            document.getElementById('findingsPage').classList.remove('show');
             document.getElementById('referenceGuide').classList.add('show');
             window.scrollTo(0, 0);
         }
 
         function showMainTool() {
             document.getElementById('referenceGuide').classList.remove('show');
+            document.getElementById('findingsPage').classList.remove('show');
             document.getElementById('mainTool').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function showFindingsPage(targetMode) {
+            activeFindingsMode = targetMode === 'pcap' ? 'pcap' : 'event';
+            document.getElementById('referenceGuide').classList.remove('show');
+            document.getElementById('mainTool').style.display = 'none';
+            document.getElementById('findingsPage').classList.add('show');
+            document.getElementById('pcapFindingsSection').style.display = activeFindingsMode === 'pcap' ? 'block' : 'none';
+            document.getElementById('findingsSection').style.display = activeFindingsMode === 'event' ? 'block' : 'none';
             window.scrollTo(0, 0);
         }
 
@@ -3923,8 +3965,7 @@
             const tabMap = {
                 details: 'details',
                 endpoints: 'endpoints',
-                security: 'security',
-                findings: 'findings'
+                security: 'security'
             };
 
             const target = tabMap[tab] || tabMap.details;
@@ -3933,16 +3974,6 @@
             });
             document.querySelectorAll('[data-pcap-panel]').forEach(panel => {
                 panel.classList.toggle('active', panel.dataset.pcapPanel === target);
-            });
-        }
-
-        function switchEventSidebarTab(tab) {
-            const target = tab === 'findings' ? 'findings' : 'details';
-            document.querySelectorAll('[data-event-tab]').forEach(t => {
-                t.classList.toggle('active', t.dataset.eventTab === target);
-            });
-            document.querySelectorAll('[data-event-panel]').forEach(panel => {
-                panel.classList.toggle('active', panel.dataset.eventPanel === target);
             });
         }
 
@@ -4037,7 +4068,7 @@
         }
 
         function jumpToPCAPFindings() {
-            switchSidebarTab('findings');
+            showFindingsPage('pcap');
         }
 
         function summarizePacket(packet) {
@@ -5104,7 +5135,7 @@
         }
 
         function jumpToFindings() {
-            switchEventSidebarTab('findings');
+            showFindingsPage('event');
         }
 
         function showMoreFindings() {
@@ -5229,12 +5260,16 @@
             filteredEvents = [];
             selectedItem = null;
             mode = null;
+            activeFindingsMode = null;
             ipEndpoints.clear();
             macEndpoints.clear();
             rogueDevices = [];
             pcapFindings = [];
             pcapFindingsSummary = { total: 0, high: 0, medium: 0, low: 0 };
             
+            document.getElementById('referenceGuide').classList.remove('show');
+            document.getElementById('findingsPage').classList.remove('show');
+            document.getElementById('mainTool').style.display = 'block';
             document.getElementById('uploadSection').style.display = 'block';
             document.getElementById('pcapViewer').classList.remove('show');
             document.getElementById('eventViewer').classList.remove('show');
@@ -5246,6 +5281,9 @@
             activeFindingFilter = null;
             if (document.getElementById('findingsContent')) {
                 document.getElementById('findingsContent').innerHTML = '';
+            }
+            if (document.getElementById('pcapFindingsContent')) {
+                document.getElementById('pcapFindingsContent').innerHTML = '';
             }
         }
 
