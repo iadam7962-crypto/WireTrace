@@ -1829,7 +1829,7 @@
                         ← Back to VodaTrace
                     </a>
                     <h1>
-                        <span class="wire">Voda</span><span class="trace">Trace</span> Investigation Findings
+                        Investigation Findings
                     </h1>
                     <p class="subtitle">Dedicated findings view for easier investigation workflows</p>
                 </div>
@@ -4058,6 +4058,9 @@
             document.getElementById('packetFilter').value = finding.actions?.filterText || '';
             document.getElementById('protocolFilter').value = finding.actions?.protocol || '';
             applyPCAPFilters();
+            if (document.getElementById('findingsPage').classList.contains('show')) {
+                showMainTool();
+            }
         }
 
         function jumpToPCAPPacket(packetNo) {
@@ -4332,6 +4335,9 @@
             document.getElementById('protocolFilter').value = '';
             filteredPackets = allPackets;
             renderPacketTable();
+            if (document.getElementById('findingsPage').classList.contains('show')) {
+                showMainTool();
+            }
         }
 
         // TCP Stream Functions
@@ -5130,6 +5136,9 @@
             const severityValue = finding.severity ? finding.severity.charAt(0).toUpperCase() + finding.severity.slice(1) : '';
             severitySelect.value = Array.from(severitySelect.options).some(opt => opt.value === severityValue) ? severityValue : ''; 
             applyEventFilters();
+            if (document.getElementById('findingsPage').classList.contains('show')) {
+                showMainTool();
+            }
             const section = document.getElementById('eventViewer');
             if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -5251,6 +5260,9 @@
             filteredEvents = allEvents;
             renderEventTable();
             renderFindings((currentEventStats && currentEventStats.findings) || []);
+            if (document.getElementById('findingsPage').classList.contains('show')) {
+                showMainTool();
+            }
         }
 
         function reset() {
