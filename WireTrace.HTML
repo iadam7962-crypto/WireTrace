@@ -541,96 +541,6 @@
             background: var(--bg-card);
         }
 
-        .patterns-header {
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 15px;
-        }
-
-        .pattern-card-mini {
-            background: rgba(45, 55, 72, 0.3);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .pattern-card-mini:hover {
-            border-color: var(--cyan);
-            background: rgba(0, 212, 255, 0.05);
-            box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
-        }
-
-        .pattern-card-mini.detected {
-            border-left: 3px solid var(--green);
-            background: rgba(63, 185, 80, 0.05);
-        }
-
-        .pattern-mini-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .pattern-mini-icon { font-size: 16px; }
-
-        .pattern-mini-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-            flex: 1;
-        }
-
-        .pattern-detected-badge {
-            font-size: 10px;
-            padding: 2px 6px;
-            background: var(--green);
-            color: white;
-            border-radius: 3px;
-            font-weight: 600;
-        }
-
-        .pattern-mini-desc {
-            font-size: 11px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-            margin-bottom: 8px;
-        }
-
-        .pattern-mini-example {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            color: var(--cyan);
-            background: var(--code-bg);
-            padding: 6px 8px;
-            border-radius: 4px;
-            overflow-x: auto;
-        }
-
-        .learn-more-btn {
-            width: 100%;
-            padding: 12px;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--cyan);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 15px;
-            font-family: 'Space Grotesk', sans-serif;
-        }
-
-        .learn-more-btn:hover {
-            background: rgba(0, 212, 255, 0.1);
-            border-color: var(--cyan);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-        }
-
 
         .sidebar-content {
             display: none;
@@ -1303,109 +1213,6 @@
             margin-top: 4px;
         }
 
-        .patterns-nav {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .patterns-nav-btn {
-            padding: 12px 24px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Space Grotesk', sans-serif;
-        }
-
-        .patterns-nav-btn:hover {
-            border-color: var(--cyan);
-            color: var(--cyan);
-            background: rgba(0, 212, 255, 0.05);
-        }
-
-        .patterns-nav-btn.active {
-            background: var(--cyan);
-            color: var(--bg-primary);
-            border-color: var(--cyan);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-        }
-
-        .patterns-section { display: none; }
-        .patterns-section.active { display: block; }
-        .section-intro { color: var(--text-secondary); font-size: 15px; margin-bottom: 30px; line-height: 1.6; }
-        .pattern-detail-card { background: var(--bg-card-dark); border: 1px solid var(--border); border-radius: 12px; padding: 30px; margin-bottom: 30px; scroll-margin-top: 100px; }
-        .pattern-detail-card.detected { border-left: 4px solid var(--green); background: linear-gradient(90deg, rgba(63, 185, 80, 0.08) 0%, var(--bg-card-dark) 10%); }
-        .pattern-detail-card.highlight-flash { animation: highlightFlash 2s ease-out; }
-
-        @keyframes highlightFlash {
-            0%, 100% { box-shadow: none; }
-            50% { box-shadow: 0 0 30px rgba(0, 212, 255, 0.6); }
-        }
-
-        .pattern-detail-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .pattern-detail-icon { font-size: 36px; }
-        .pattern-detail-title { flex: 1; }
-        .pattern-detail-title h3 { font-size: 24px; color: var(--text-primary); margin-bottom: 5px; }
-        .pattern-detail-title p { font-size: 14px; color: var(--text-secondary); }
-        .pattern-detected-tag { padding: 8px 16px; background: var(--green); color: white; border-radius: 6px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-        .pattern-description { font-size: 15px; color: var(--text-primary); line-height: 1.7; margin-bottom: 25px; padding: 15px; background: rgba(45, 55, 72, 0.3); border-radius: 8px; border-left: 3px solid var(--cyan); }
-        .pattern-subsection { margin-bottom: 25px; }
-        .pattern-subsection-title { font-size: 16px; font-weight: 600; color: var(--cyan); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .pattern-list { list-style: none; padding: 0; }
-        .pattern-list li { padding: 8px 0 8px 25px; position: relative; color: var(--text-primary); font-size: 14px; line-height: 1.6; }
-        .pattern-list li::before { content: '•'; position: absolute; left: 8px; color: var(--cyan); font-weight: bold; }
-        .pattern-list.warning-list li::before { content: '⚠️'; font-size: 14px; }
-        .pattern-packets-example { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px; }
-        .pattern-packet-line { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 6px 0; display: flex; align-items: center; gap: 10px; }
-        .pattern-packet-type { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
-        .pattern-packet-type.query, .pattern-packet-type.request, .pattern-packet-type.syn { background: rgba(220, 40, 87, 0.2); color: var(--crimson); }
-        .pattern-packet-type.response, .pattern-packet-type.reply, .pattern-packet-type.synack, .pattern-packet-type.ack { background: rgba(63, 185, 80, 0.2); color: var(--green); }
-        .pattern-packet-type.data { background: rgba(0, 212, 255, 0.2); color: var(--cyan); }
-        .pattern-packet-text { color: var(--text-primary); flex: 1; }
-        .pattern-packet-meta { color: var(--text-secondary); font-size: 11px; }
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .metric-card { background: var(--bg-card-dark); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
-        .metric-card-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .metric-range { margin-bottom: 12px; }
-        .metric-range-label { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
-        .metric-range-icon.good { color: var(--green); }
-        .metric-range-icon.warning { color: #f59e0b; }
-        .metric-range-icon.bad { color: #ef4444; }
-        .metric-range-value { font-family: 'JetBrains Mono', monospace; font-size: 14px; padding-left: 28px; color: var(--text-secondary); }
-        .suspicious-pattern-card { background: var(--bg-card-dark); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
-        .suspicious-pattern-title { font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .pattern-observed { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
-        .pattern-observed-title { font-size: 12px; font-weight: 600; color: #ef4444; text-transform: uppercase; margin-bottom: 6px; }
-        .pattern-observed-desc { font-size: 14px; color: var(--text-primary); }
-        .pattern-legitimate { background: rgba(63, 185, 80, 0.1); border-left: 3px solid var(--green); padding: 12px; border-radius: 6px; margin-bottom: 15px; }
-        .pattern-legitimate-title { font-size: 12px; font-weight: 600; color: var(--green); text-transform: uppercase; margin-bottom: 6px; }
-        .pattern-worry-when { background: rgba(251, 191, 36, 0.1); border-left: 3px solid #fbbf24; padding: 12px; border-radius: 6px; }
-        .pattern-worry-title { font-size: 12px; font-weight: 600; color: #fbbf24; text-transform: uppercase; margin-bottom: 6px; }
-        .quiz-card { background: var(--bg-card-dark); border: 1px solid var(--border); border-radius: 12px; padding: 30px; margin-bottom: 30px; }
-        .quiz-question { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 20px; }
-        .quiz-scenario { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-        .quiz-scenario-title { font-size: 14px; font-weight: 600; color: var(--cyan); margin-bottom: 12px; }
-        .quiz-packets { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-primary); }
-        .quiz-packets div { padding: 4px 0; }
-        .quiz-options { display: flex; gap: 15px; margin-bottom: 20px; }
-        .quiz-option-btn { flex: 1; padding: 15px; background: var(--bg-secondary); border: 2px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Space Grotesk', sans-serif; }
-        .quiz-option-btn:hover { border-color: var(--cyan); background: rgba(0, 212, 255, 0.1); }
-        .quiz-option-btn.correct { background: rgba(63, 185, 80, 0.2); border-color: var(--green); color: var(--green); }
-        .quiz-option-btn.incorrect { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444; }
-        .quiz-explanation { display: none; background: rgba(63, 185, 80, 0.1); border-left: 3px solid var(--green); padding: 15px; border-radius: 6px; margin-bottom: 15px; }
-        .quiz-explanation.show { display: block; }
-        .quiz-explanation-title { font-size: 14px; font-weight: 600; color: var(--green); margin-bottom: 8px; }
-        .quiz-explanation-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; }
-        .quiz-next-btn { padding: 12px 24px; background: var(--crimson); border: none; border-radius: 6px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Space Grotesk', sans-serif; }
-        .quiz-next-btn:hover { background: #be1e3e; box-shadow: 0 0 20px rgba(220, 40, 87, 0.4); }
-        .quiz-score { text-align: center; padding: 20px; font-size: 16px; color: var(--text-secondary); }
-
         .tip-box {
             background: rgba(0, 212, 255, 0.05);
             border-left: 3px solid var(--cyan);
@@ -1778,10 +1585,6 @@
             <span class="app-sidebar-icon">&#9776;</span>
             <span class="app-sidebar-label">Reference Guide</span>
         </button>
-        <button class="app-sidebar-item" onclick="sidebarAction('patterns')">
-            <span class="app-sidebar-icon">&#10024;</span>
-            <span class="app-sidebar-label">Traffic Patterns</span>
-        </button>
         <button class="app-sidebar-item" onclick="sidebarAction('reset')">
             <span class="app-sidebar-icon">&#8635;</span>
             <span class="app-sidebar-label">Load New File</span>
@@ -1905,7 +1708,6 @@
                             <div class="sidebar-tab active" data-pcap-tab="details" onclick="switchSidebarTab('details')">📦 Details</div>
                             <div class="sidebar-tab" data-pcap-tab="endpoints" onclick="switchSidebarTab('endpoints')">🌐 Endpoints</div>
                             <div class="sidebar-tab" data-pcap-tab="security" onclick="switchSidebarTab('security')">🛡️ Security</div>
-                            <div class="sidebar-tab" data-pcap-tab="patterns" onclick="switchSidebarTab('patterns')">✨ Patterns</div>
                         </div>
 
                         <div class="sidebar-content active" id="detailsTab" data-pcap-panel="details">
@@ -1939,23 +1741,6 @@
                                     <p class="security-ok">✅ No suspicious devices detected</p>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="sidebar-content" data-pcap-panel="patterns">
-                            <div class="patterns-header">
-                                <h3 style="font-size: 14px; color: var(--cyan); margin-bottom: 15px; font-weight: 600;">
-                                    📚 Common Traffic Patterns
-                                </h3>
-                                <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
-                                    Learn what healthy network traffic looks like. Patterns detected in your capture are marked with ✅
-                                </p>
-                            </div>
-
-                            <div id="patternCards"></div>
-
-                            <button class="learn-more-btn" onclick="showPatternsPage()">
-                                📖 Open Full Pattern Guide
-                            </button>
                         </div>
 
 
@@ -2074,72 +1859,6 @@
                     <button class="action-btn" onclick="exportTCPStream()">💾 Export Stream</button>
                     <button class="action-btn-secondary action-btn" onclick="closeStreamModal()">Close</button>
                 </div>
-            </div>
-        </div>
-
-        <div id="patternsGuide" class="ref-guide">
-            <header class="header">
-                <div class="header-content">
-                    <a href="#" class="back-link" onclick="showMainTool(); return false;">
-                        ← Back to VodaTrace
-                    </a>
-                    <h1>
-                        <span class="wire">Traffic</span><span class="trace">Patterns</span> Guide
-                    </h1>
-                    <p class="subtitle">Understanding Normal Network Behavior</p>
-                </div>
-            </header>
-
-            <div class="patterns-nav">
-                <button class="patterns-nav-btn active" onclick="switchPatternsSection('healthy', this)">✅ Healthy Patterns</button>
-                <button class="patterns-nav-btn" onclick="switchPatternsSection('metrics', this)">📊 Baseline Metrics</button>
-                <button class="patterns-nav-btn" onclick="switchPatternsSection('suspicious', this)">🔍 Looks Suspicious (But Normal)</button>
-                <button class="patterns-nav-btn" onclick="switchPatternsSection('quiz', this)">🎯 Pattern Recognition Quiz</button>
-            </div>
-
-            <div id="healthyPatternsSection" class="patterns-section active">
-                <div class="section-header">
-                    <span class="section-icon">✅</span>
-                    <h2 class="section-title">Healthy Traffic Patterns</h2>
-                </div>
-                <p class="section-intro">
-                    These are common, legitimate network traffic patterns you'll see in normal operation.
-                    Patterns detected in your current capture are highlighted with ✅.
-                </p>
-                <div id="healthyPatternsList"></div>
-            </div>
-
-            <div id="metricsSection" class="patterns-section">
-                <div class="section-header">
-                    <span class="section-icon">📊</span>
-                    <h2 class="section-title">Baseline Metrics</h2>
-                </div>
-                <p class="section-intro">
-                    Reference values to help you understand what's "normal" vs. "problematic"
-                </p>
-                <div class="metrics-grid"></div>
-            </div>
-
-            <div id="suspiciousSection" class="patterns-section">
-                <div class="section-header">
-                    <span class="section-icon">🔍</span>
-                    <h2 class="section-title">Looks Suspicious (But Usually Normal)</h2>
-                </div>
-                <p class="section-intro">
-                    These patterns can raise false alarms. Learn when they're legitimate vs. actually concerning.
-                </p>
-                <div id="suspiciousPatternsList"></div>
-            </div>
-
-            <div id="quizSection" class="patterns-section">
-                <div class="section-header">
-                    <span class="section-icon">🎯</span>
-                    <h2 class="section-title">Pattern Recognition Quiz</h2>
-                </div>
-                <p class="section-intro">
-                    Test your understanding! We'll show real patterns from network captures.
-                </p>
-                <div id="quizContainer"></div>
             </div>
         </div>
 
@@ -2660,21 +2379,6 @@
         let rogueDevices = [];
         let hexDumpExpanded = false;
         let legitimateGatewayMAC = null;
-        let detectedPatterns = new Set();
-        let quizQuestions = [];
-        let currentQuizIndex = 0;
-        let quizScore = 0;
-
-        const NORMAL_PATTERNS = [
-            { id:'dns_resolution', icon:'🌐', title:'DNS Resolution', shortDesc:'Device looking up domain names to get IP addresses', example:'Query: google.com → Response: 142.250.80.46', fullDescription:'Normal DNS resolution involves a client sending a query to a DNS server (usually on port 53 UDP) and receiving a response containing the IP address.', healthyPattern:['Single query per domain (with caching)','Response within 10-200ms','Valid response code (NOERROR)','Reasonable TTL values (300-86400 seconds)'], warningPatterns:['Multiple identical queries (DNS cache not working)','Response times over 500ms','Many NXDOMAIN responses (domain does not exist)','Queries to unusual DNS servers'], examplePackets:[{ type:'query', text:'192.168.1.100 → 8.8.8.8 [DNS Query: google.com Type A]' },{ type:'response', text:'8.8.8.8 → 192.168.1.100 [DNS Response: 142.250.80.46 TTL:300]', time:'23ms' }] },
-            { id:'tcp_handshake', icon:'🤝', title:'TCP Connection', shortDesc:'Normal 3-way handshake establishing reliable connection', example:'SYN → SYN-ACK → ACK → Data', fullDescription:'TCP establishes connections using a 3-way handshake before any data is transmitted, ensuring both endpoints are ready.', healthyPattern:['Complete SYN, SYN-ACK, ACK sequence','Sequence numbers increment properly','No RST (reset) packets','Clean connection closure with FIN packets'], warningPatterns:['SYN without SYN-ACK (server not responding)','Immediate RST packets (connection refused)','Retransmissions of SYN packets','No ACK after SYN-ACK'], examplePackets:[{ type:'syn', text:'[1] 192.168.1.100:54321 → 93.184.216.34:443 [SYN] Seq=0' },{ type:'synack', text:'[2] 93.184.216.34:443 → 192.168.1.100:54321 [SYN-ACK] Seq=0 Ack=1' },{ type:'ack', text:'[3] 192.168.1.100:54321 → 93.184.216.34:443 [ACK] Seq=1 Ack=1' },{ type:'data', text:'[4-50] Encrypted TLS data exchange...' }] },
-            { id:'https_browsing', icon:'🔒', title:'HTTPS Web Traffic', shortDesc:'Secure web browsing with TLS encryption', example:'Port 443 • TLS Handshake • Encrypted Data', fullDescription:'HTTPS traffic uses TCP port 443 with TLS encryption. After TCP handshake, a TLS handshake occurs, then encrypted application data flows.', healthyPattern:['TCP handshake first (ports 443)','TLS handshake (Client Hello, Server Hello, etc.)','Encrypted application data','Normal packet sizes (60-1500 bytes)','Bidirectional traffic'], warningPatterns:['Connections to port 443 without TLS','Certificate errors','Unusual destination IPs for known domains','Excessive connections to same server'] },
-            { id:'dhcp_join', icon:'🏠', title:'DHCP (Device Joining)', shortDesc:'Device requesting IP address from router', example:'DORA: Discover → Offer → Request → ACK', fullDescription:'DHCP uses a 4-step process (DORA) to assign IP addresses: Discover (broadcast), Offer (server response), Request (client accepts), ACK (server confirms).', healthyPattern:['All 4 DORA steps present','Completion within 1-2 seconds','Valid IP from router's range','Single DHCP server responding','Reasonable lease time (hours to days)'], warningPatterns:['Multiple Discover without Offer (no DHCP server)','Multiple DHCP servers responding (rogue DHCP)','Constantly renewing (very short lease)','DHCP requests every few minutes'], examplePackets:[{ type:'request', text:'[1] 0.0.0.0 → 255.255.255.255 [DHCP Discover] MAC: aa:bb:cc:dd:ee:ff' },{ type:'response', text:'[2] 192.168.1.1 → 255.255.255.255 [DHCP Offer: 192.168.1.50]' },{ type:'request', text:'[3] 0.0.0.0 → 255.255.255.255 [DHCP Request for 192.168.1.50]' },{ type:'ack', text:'[4] 192.168.1.1 → 192.168.1.50 [DHCP ACK] Lease: 24h' }] },
-            { id:'arp_resolution', icon:'📍', title:'ARP (Local Network)', shortDesc:'Finding MAC address for IP on local network', example:'Who has 192.168.1.1? → MAC: aa:bb:cc:dd:ee:ff', fullDescription:'ARP resolves IP addresses to MAC addresses on the local network. A device broadcasts "Who has this IP?" and the owner responds with their MAC address.', healthyPattern:['Request followed by reply','1:1 request-to-reply ratio','Same MAC always responds for an IP','Minimal gratuitous ARP','Broadcasts only on local subnet'], warningPatterns:['Same MAC claiming multiple IPs (IP conflict)','Multiple MACs claiming same IP (ARP spoofing)','Excessive gratuitous ARP packets','ARP storms (hundreds per second)','ARP requests with no replies'], examplePackets:[{ type:'request', text:'[1] Who has 192.168.1.1? Tell 192.168.1.100' },{ type:'reply', text:'[2] 192.168.1.1 is at aa:bb:cc:dd:ee:ff' }] },
-            { id:'icmp_ping', icon:'📡', title:'ICMP Ping', shortDesc:'Testing connectivity between devices', example:'Echo Request → Echo Reply', fullDescription:'ICMP ping sends Echo Request (Type 8) and expects Echo Reply (Type 0). Used to test network connectivity and measure latency.', healthyPattern:['Echo Request followed by Echo Reply','Round-trip time under 100ms (LAN)','Sequence numbers increment','No packet loss (all requests get replies)','Consistent TTL values'], warningPatterns:['Echo Request without Reply (host down)','Destination Unreachable responses','Time Exceeded (routing loop)','Very high latency (>1000ms)','Packet loss >5%'], examplePackets:[{ type:'request', text:'[1] 192.168.1.100 → 8.8.8.8 [Echo Request] Seq=1 TTL=64' },{ type:'reply', text:'[2] 8.8.8.8 → 192.168.1.100 [Echo Reply] Seq=1 TTL=118 Time=15ms' }] },
-            { id:'multicast_mdns', icon:'📢', title:'Multicast/mDNS', shortDesc:'Device discovery on local network (smart devices, printers)', example:'Broadcast: _services._dns-sd._udp.local', fullDescription:'Multicast DNS (mDNS) and SSDP allow devices to discover services on local network without DNS server. Common with smart home devices, printers, and Apple devices.', healthyPattern:['Broadcast to 224.0.0.251 (mDNS)','UDP port 5353 or 1900','Periodic announcements (every few minutes)','Service discovery queries (_services._dns-sd)','Reasonable frequency (not constant)'], warningPatterns:['Excessive broadcasts (>100/sec)','Multicast to external networks','Malformed service announcements','Discovery storms'], examplePackets:[{ type:'query', text:'[1] 192.168.1.150 → 224.0.0.251 [mDNS Query: _airplay._tcp.local]' },{ type:'response', text:'[2] 192.168.1.150 → 224.0.0.251 [mDNS Response: Apple-TV.local]' }] },
-            { id:'background_updates', icon:'🔄', title:'Background Updates', shortDesc:'Apps checking for updates (normal periodic behavior)', example:'HTTPS to known update servers every few hours', fullDescription:'Operating systems and applications regularly check for updates. This creates periodic HTTPS traffic to known update servers.', healthyPattern:['Connections to known domains (microsoft.com, apple.com, etc.)','HTTPS on port 443','Periodic (hourly or daily)','Small data transfers initially','Larger transfers if update available'], warningPatterns:['Constant connections (every few seconds)','Updates to unknown/suspicious domains','Excessive bandwidth usage','Update attempts to non-standard ports'] }
-        ];
 
         // All possible protocols for filtering
         const ALL_PROTOCOLS = [
@@ -2701,14 +2405,12 @@
         function showReferenceGuide() {
             document.getElementById('mainTool').style.display = 'none';
             document.getElementById('findingsPage').classList.remove('show');
-            document.getElementById('patternsGuide').classList.remove('show');
             document.getElementById('referenceGuide').classList.add('show');
             window.scrollTo(0, 0);
         }
 
         function showMainTool() {
             document.getElementById('referenceGuide').classList.remove('show');
-            document.getElementById('patternsGuide').classList.remove('show');
             document.getElementById('findingsPage').classList.remove('show');
             document.getElementById('mainTool').style.display = 'block';
             window.scrollTo(0, 0);
@@ -2717,206 +2419,11 @@
         function showFindingsPage(targetMode) {
             activeFindingsMode = targetMode === 'pcap' ? 'pcap' : 'event';
             document.getElementById('referenceGuide').classList.remove('show');
-            document.getElementById('patternsGuide').classList.remove('show');
             document.getElementById('mainTool').style.display = 'none';
             document.getElementById('findingsPage').classList.add('show');
             document.getElementById('pcapFindingsSection').style.display = activeFindingsMode === 'pcap' ? 'block' : 'none';
             document.getElementById('findingsSection').style.display = activeFindingsMode === 'event' ? 'block' : 'none';
             window.scrollTo(0, 0);
-        }
-
-        // Normal traffic patterns analysis
-        function analyzeTrafficPatterns() {
-            detectedPatterns.clear();
-            if (!allPackets || allPackets.length === 0) {
-                renderPatternCards();
-                return;
-            }
-
-            const dnsPackets = allPackets.filter(p => p.protocol === 'DNS');
-            if (dnsPackets.length > 0 && dnsPackets.some(p => (p.info || '').includes('Response'))) detectedPatterns.add('dns_resolution');
-
-            const tcpPackets = allPackets.filter(p => p.protocol === 'TCP');
-            const hasSYN = tcpPackets.some(p => (p.info || '').includes('[SYN]'));
-            const hasSYNACK = tcpPackets.some(p => (p.info || '').includes('[SYN-ACK]'));
-            const hasACK = tcpPackets.some(p => (p.info || '').includes('[ACK]'));
-            if (hasSYN && hasSYNACK && hasACK) detectedPatterns.add('tcp_handshake');
-
-            if (allPackets.some(p => p.protocol === 'HTTPS')) detectedPatterns.add('https_browsing');
-            if (allPackets.some(p => p.protocol === 'DHCP')) detectedPatterns.add('dhcp_join');
-            if (allPackets.some(p => p.protocol === 'ARP')) detectedPatterns.add('arp_resolution');
-            if (allPackets.some(p => p.protocol === 'ICMP')) detectedPatterns.add('icmp_ping');
-
-            const hasMdns = allPackets.some(p => (p.protocol === 'UDP' || p.protocol === 'DNS') && ((p.destination || '').includes('224.0.0.251') || (p.destination || '').includes('239.255.255.250') || (p.info || '').toLowerCase().includes('mdns')));
-            if (hasMdns) detectedPatterns.add('multicast_mdns');
-
-            renderPatternCards();
-        }
-
-        function renderPatternCards() {
-            const container = document.getElementById('patternCards');
-            if (!container) return;
-            container.innerHTML = NORMAL_PATTERNS.map(pattern => {
-                const isDetected = detectedPatterns.has(pattern.id);
-                return `
-                    <div class="pattern-card-mini ${isDetected ? 'detected' : ''}" onclick="showPatternDetail('${pattern.id}')">
-                        <div class="pattern-mini-header">
-                            <span class="pattern-mini-icon">${pattern.icon}</span>
-                            <span class="pattern-mini-title">${pattern.title}</span>
-                            ${isDetected ? '<span class="pattern-detected-badge">✅ Found</span>' : ''}
-                        </div>
-                        <div class="pattern-mini-desc">${pattern.shortDesc}</div>
-                        <div class="pattern-mini-example">${pattern.example}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function showPatternDetail(patternId) {
-            showPatternsPage();
-            setTimeout(() => {
-                const element = document.getElementById('pattern-' + patternId);
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                    element.classList.add('highlight-flash');
-                    setTimeout(() => element.classList.remove('highlight-flash'), 2000);
-                }
-            }, 300);
-        }
-
-        function showPatternsPage() {
-            document.getElementById('mainTool').style.display = 'none';
-            document.getElementById('findingsPage').classList.remove('show');
-            document.getElementById('referenceGuide').classList.remove('show');
-            document.getElementById('patternsGuide').classList.add('show');
-            window.scrollTo(0, 0);
-            renderHealthyPatterns();
-            renderMetrics();
-            renderSuspiciousPatterns();
-            initializeQuiz();
-            switchPatternsSection('healthy', document.querySelector('.patterns-nav-btn'));
-        }
-
-        function switchPatternsSection(section, buttonEl) {
-            document.querySelectorAll('.patterns-nav-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.patterns-section').forEach(sec => sec.classList.remove('active'));
-            if (buttonEl) buttonEl.classList.add('active');
-            const sectionMap = { healthy: 'healthyPatternsSection', metrics: 'metricsSection', suspicious: 'suspiciousSection', quiz: 'quizSection' };
-            const targetId = sectionMap[section] || sectionMap.healthy;
-            const target = document.getElementById(targetId);
-            if (target) target.classList.add('active');
-        }
-
-        function renderHealthyPatterns() {
-            const container = document.getElementById('healthyPatternsList');
-            if (!container) return;
-            container.innerHTML = NORMAL_PATTERNS.map(pattern => {
-                const isDetected = detectedPatterns.has(pattern.id);
-                return `
-                    <div class="pattern-detail-card ${isDetected ? 'detected' : ''}" id="pattern-${pattern.id}">
-                        <div class="pattern-detail-header">
-                            <span class="pattern-detail-icon">${pattern.icon}</span>
-                            <div class="pattern-detail-title">
-                                <h3>${pattern.title}</h3><p>${pattern.shortDesc}</p>
-                            </div>
-                            ${isDetected ? '<div class="pattern-detected-tag">✅ Found in Your Capture</div>' : ''}
-                        </div>
-                        <div class="pattern-description">${pattern.fullDescription}</div>
-                        <div class="pattern-subsection">
-                            <div class="pattern-subsection-title">✅ What Healthy ${pattern.title} Looks Like:</div>
-                            <ul class="pattern-list">${(pattern.healthyPattern || []).map(item => `<li>${item}</li>`).join('')}</ul>
-                        </div>
-                        ${(pattern.warningPatterns && pattern.warningPatterns.length) ? `<div class="pattern-subsection"><div class="pattern-subsection-title">⚠️ Warning Signs to Watch For:</div><ul class="pattern-list warning-list">${pattern.warningPatterns.map(item => `<li>${item}</li>`).join('')}</ul></div>` : ''}
-                        ${(pattern.examplePackets && pattern.examplePackets.length) ? `<div class="pattern-subsection"><div class="pattern-subsection-title">📦 Example Packet Sequence:</div><div class="pattern-packets-example">${pattern.examplePackets.map(pkt => `<div class="pattern-packet-line"><span class="pattern-packet-type ${pkt.type}">${pkt.type}</span><span class="pattern-packet-text">${pkt.text}</span>${pkt.time ? `<span class="pattern-packet-meta">${pkt.time}</span>` : ''}</div>`).join('')}</div></div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderMetrics() {
-            const container = document.querySelector('.metrics-grid');
-            if (!container) return;
-            const metrics = [
-                { title:'🌐 DNS Response Time', icon:'🌐', ranges:[{ label:'Excellent', icon:'good', value:'10-50ms' },{ label:'Good', icon:'good', value:'50-200ms' },{ label:'Slow', icon:'warning', value:'200-500ms' },{ label:'Problem', icon:'bad', value:'>500ms or no response' }] },
-                { title:'🔄 TCP Retransmissions', icon:'🔄', ranges:[{ label:'Excellent', icon:'good', value:'<0.1% of packets' },{ label:'Acceptable', icon:'good', value:'0.1-1%' },{ label:'Concerning', icon:'warning', value:'1-3%' },{ label:'Problem', icon:'bad', value:'>3%' }] },
-                { title:'🏠 DHCP Renewals', icon:'🏠', ranges:[{ label:'Normal', icon:'good', value:'Every 12-24 hours' },{ label:'Frequent', icon:'warning', value:'Every 1-2 hours' },{ label:'Suspicious', icon:'warning', value:'Every few minutes' },{ label:'Problem', icon:'bad', value:'Constant requests' }] },
-                { title:'📍 ARP Request Rate', icon:'📍', ranges:[{ label:'Normal', icon:'good', value:'1-2 per IP discovery' },{ label:'Elevated', icon:'warning', value:'5-10 (congestion possible)' },{ label:'High', icon:'warning', value:'10-50 (check for issues)' },{ label:'Problem', icon:'bad', value:'>50 (attack/misconfiguration)' }] },
-                { title:'📡 Ping Latency (LAN)', icon:'📡', ranges:[{ label:'Excellent', icon:'good', value:'<1ms' },{ label:'Good', icon:'good', value:'1-10ms' },{ label:'Acceptable', icon:'warning', value:'10-50ms' },{ label:'Problem', icon:'bad', value:'>50ms' }] },
-                { title:'🔒 HTTPS Connection Time', icon:'🔒', ranges:[{ label:'Fast', icon:'good', value:'<100ms' },{ label:'Normal', icon:'good', value:'100-500ms' },{ label:'Slow', icon:'warning', value:'500ms-2s' },{ label:'Problem', icon:'bad', value:'>2s or timeout' }] }
-            ];
-            container.innerHTML = metrics.map(metric => `
-                <div class="metric-card">
-                    <div class="metric-card-title"><span>${metric.icon}</span><span>${metric.title}</span></div>
-                    ${metric.ranges.map(range => `<div class="metric-range"><div class="metric-range-label"><span class="metric-range-icon ${range.icon}">${range.icon === 'good' ? '✅' : range.icon === 'warning' ? '⚠️' : '❌'}</span><span>${range.label}:</span></div><div class="metric-range-value">${range.value}</div></div>`).join('')}
-                </div>
-            `).join('');
-        }
-
-        function renderSuspiciousPatterns() {
-            const container = document.getElementById('suspiciousPatternsList');
-            if (!container) return;
-            const suspiciousPatterns = [
-                { title:'📢 Broadcast Storm', observed:'Many packets to 255.255.255.255 or multicast addresses', reasons:['DHCP discovery from new devices','NetBIOS name resolution (Windows networks)','mDNS/Bonjour service discovery (Apple devices, smart home)','SSDP device discovery (Smart TVs, Chromecast, IoT)'], worryWhen:'Volume exceeds 100 packets/second, or coming from single device constantly' },
-                { title:'🖨️ Printer Port Scanning', observed:'Network printer sending packets to many different IPs', reasons:['WSD (Web Services Discovery) protocol','SNMP device polling for management','Multicast DNS for printer discovery','Brother/HP printer-specific discovery protocols'], worryWhen:'Scanning external IPs, using uncommon ports, or excessive frequency' },
-                { title:'🔄 Repeated Connection Attempts', observed:'Same source trying to connect multiple times to same destination', reasons:['Application with aggressive retry logic','Background update checkers','Network monitoring/health check software','Load balancer health checks','Keep-alive mechanisms'], worryWhen:'Different ports each attempt, unknown/external destinations, hundreds per second' },
-                { title:'🌍 Many External DNS Queries', observed:'Device making hundreds of DNS queries to different domains', reasons:['Web browser with many tabs open','Email client loading images/tracking pixels','Social media apps prefetching content','Security software checking URLs'], worryWhen:'Queries for suspicious TLDs (.tk, .xyz in bulk), DGA-like random domains, or cryptocurrency domains' },
-                { title:'📊 High Port Numbers', observed:'Traffic on ports above 49152 (ephemeral ports)', reasons:['Normal client-side port assignment','Operating system assigns these for outbound connections','Most TCP connections use ephemeral source ports','Expected behavior for most applications'], worryWhen:'Inbound connections to high ports (possible backdoor), or listening services on ephemeral range' },
-                { title:'🔐 Failed Login Attempts', observed:'3-5 authentication failures then success', reasons:['User mistyped password','Password manager auto-fill delay','Multiple browser tabs attempting login','Cached credentials expired','Caps Lock was on'], worryWhen:'Hundreds of attempts, from multiple IPs, targeting many accounts, or using credential lists' }
-            ];
-            container.innerHTML = suspiciousPatterns.map(pattern => `
-                <div class="suspicious-pattern-card">
-                    <div class="suspicious-pattern-title"><span>${pattern.title}</span></div>
-                    <div class="pattern-observed"><div class="pattern-observed-title">🔍 What You See:</div><div class="pattern-observed-desc">${pattern.observed}</div></div>
-                    <div class="pattern-legitimate"><div class="pattern-legitimate-title">✅ Why It Happens (Legitimate):</div><ul class="pattern-list">${pattern.reasons.map(reason => `<li>${reason}</li>`).join('')}</ul></div>
-                    <div class="pattern-worry-when"><div class="pattern-worry-title">⚠️ When to Actually Worry:</div><div class="pattern-observed-desc">${pattern.worryWhen}</div></div>
-                </div>
-            `).join('');
-        }
-
-        function initializeQuiz() {
-            quizQuestions = [
-                { question:'Is this DNS traffic normal or suspicious?', packets:['192.168.1.100 → 8.8.8.8 [DNS Query: google.com Type A]','8.8.8.8 → 192.168.1.100 [DNS Response: 142.250.80.46] Time: 23ms'], correctAnswer:'normal', explanation:'This is normal DNS traffic. Single query to Google's public DNS (8.8.8.8), quick response time (23ms), and valid response for a legitimate domain.' },
-                { question:'Is this TCP connection normal or suspicious?', packets:['[1] 192.168.1.100:54321 → 93.184.216.34:443 [SYN]','[2] 93.184.216.34:443 → 192.168.1.100:54321 [RST]'], correctAnswer:'suspicious', explanation:'This is suspicious. The server immediately responded with RST (reset), indicating the connection was refused. This could mean the service is down, blocked by firewall, or the destination is unreachable.' },
-                { question:'Is this DHCP sequence normal or suspicious?', packets:['[1] 0.0.0.0 → 255.255.255.255 [DHCP Discover]','[2] 192.168.1.1 → 255.255.255.255 [DHCP Offer: 192.168.1.50]','[3] 192.168.1.254 → 255.255.255.255 [DHCP Offer: 192.168.1.75]','[4] 0.0.0.0 → 255.255.255.255 [DHCP Request for 192.168.1.50]'], correctAnswer:'suspicious', explanation:'This is suspicious! Two different servers (192.168.1.1 and 192.168.1.254) responded with DHCP offers. This indicates a rogue DHCP server on the network, which is a security concern.' },
-                { question:'Is this ARP traffic normal or suspicious?', packets:['[1] Who has 192.168.1.1? Tell 192.168.1.100','[2] 192.168.1.1 is at aa:bb:cc:dd:ee:ff','[3] Who has 192.168.1.1? Tell 192.168.1.101','[4] 192.168.1.1 is at aa:bb:cc:dd:ee:ff'], correctAnswer:'normal', explanation:'This is normal. Two different devices are asking for the gateway's MAC address and getting consistent responses.' },
-                { question:'Is this broadcast traffic normal or suspicious?', packets:['192.168.1.150 → 224.0.0.251 [mDNS Query: _airplay._tcp.local]','192.168.1.150 → 224.0.0.251 [mDNS Query: _googlecast._tcp.local]','192.168.1.150 → 224.0.0.251 [mDNS Query: _spotify-connect._tcp.local]'], correctAnswer:'normal', explanation:'This is normal. Device is discovering local services like AirPlay, Chromecast, and Spotify Connect using mDNS.' }
-            ];
-            currentQuizIndex = 0;
-            quizScore = 0;
-            renderQuizQuestion();
-        }
-
-        function renderQuizQuestion() {
-            const container = document.getElementById('quizContainer');
-            if (!container) return;
-            if (currentQuizIndex >= quizQuestions.length) {
-                const percentage = Math.round((quizScore / quizQuestions.length) * 100);
-                const emoji = percentage >= 80 ? '🎉' : percentage >= 60 ? '👍' : '📚';
-                const message = percentage >= 80 ? 'Excellent! You have a strong understanding of network traffic patterns.' : percentage >= 60 ? 'Good job! Keep practicing to improve your pattern recognition skills.' : 'Keep learning! Review the healthy patterns section and try again.';
-                container.innerHTML = `<div class="quiz-card"><div style="text-align:center;"><div style="font-size:64px; margin-bottom:20px;">${emoji}</div><h2 style="font-size:32px; color:var(--cyan); margin-bottom:15px;">Quiz Complete!</h2><div style="font-size:48px; font-weight:700; color:var(--text-primary); margin-bottom:15px;">${quizScore}/${quizQuestions.length}</div><div style="font-size:18px; color:var(--text-secondary); margin-bottom:30px;">${percentage}% Correct</div><p style="font-size:16px; color:var(--text-primary); margin-bottom:30px;">${message}</p><button class="quiz-next-btn" onclick="initializeQuiz()">🔄 Try Again</button></div></div>`;
-                return;
-            }
-            const q = quizQuestions[currentQuizIndex];
-            container.innerHTML = `<div class="quiz-card"><div class="quiz-score">Question ${currentQuizIndex + 1} of ${quizQuestions.length} | Score: ${quizScore}</div><div class="quiz-question">${q.question}</div><div class="quiz-scenario"><div class="quiz-scenario-title">📦 Network Traffic Observed:</div><div class="quiz-packets">${q.packets.map(pkt => `<div>${pkt}</div>`).join('')}</div></div><div class="quiz-options"><button class="quiz-option-btn" onclick="answerQuiz('normal', this)">✅ Normal</button><button class="quiz-option-btn" onclick="answerQuiz('suspicious', this)">⚠️ Suspicious</button></div><div class="quiz-explanation" id="quizExplanation"><div class="quiz-explanation-title">Explanation:</div><div class="quiz-explanation-text" id="quizExplanationText"></div></div><button class="quiz-next-btn" onclick="nextQuizQuestion()" style="display:none;" id="quizNextBtn">Next Question →</button></div>`;
-        }
-
-        function answerQuiz(answer, buttonEl) {
-            const q = quizQuestions[currentQuizIndex];
-            const buttons = document.querySelectorAll('.quiz-option-btn');
-            const explanation = document.getElementById('quizExplanation');
-            const explanationText = document.getElementById('quizExplanationText');
-            const nextBtn = document.getElementById('quizNextBtn');
-            buttons.forEach(btn => { btn.disabled = true; btn.style.cursor = 'not-allowed'; btn.style.opacity = '0.6'; });
-            if (answer === q.correctAnswer) { buttonEl.classList.add('correct'); quizScore++; }
-            else { buttonEl.classList.add('incorrect'); buttons.forEach(btn => { if (btn.textContent.toLowerCase().includes(q.correctAnswer)) btn.classList.add('correct'); }); }
-            explanationText.textContent = q.explanation;
-            explanation.classList.add('show');
-            nextBtn.style.display = 'block';
-        }
-
-        function nextQuizQuestion() {
-            currentQuizIndex++;
-            renderQuizQuestion();
         }
 
         // Mode selection
@@ -3044,7 +2551,6 @@
             rogueDevices = [];
             pcapFindings = [];
             pcapFindingsSummary = { total: 0, high: 0, medium: 0, low: 0 };
-            detectedPatterns.clear();
             legitimateGatewayMAC = null;
             hexDumpExpanded = false;
             let offset = 24;
@@ -3143,7 +2649,6 @@
             console.timeEnd('PCAP Parsing');
 
             displayPCAPViewer();
-            analyzeTrafficPatterns();
             renderEndpoints();
             setTimeout(() => showProgress(false), 500);
         }
@@ -4460,8 +3965,7 @@
             const tabMap = {
                 details: 'details',
                 endpoints: 'endpoints',
-                security: 'security',
-                patterns: 'patterns'
+                security: 'security'
             };
 
             const target = tabMap[tab] || tabMap.details;
@@ -4471,10 +3975,6 @@
             document.querySelectorAll('[data-pcap-panel]').forEach(panel => {
                 panel.classList.toggle('active', panel.dataset.pcapPanel === target);
             });
-
-            if (target === 'patterns') {
-                analyzeTrafficPatterns();
-            }
         }
 
 
@@ -5778,10 +5278,8 @@
             rogueDevices = [];
             pcapFindings = [];
             pcapFindingsSummary = { total: 0, high: 0, medium: 0, low: 0 };
-            detectedPatterns.clear();
             
             document.getElementById('referenceGuide').classList.remove('show');
-            document.getElementById('patternsGuide').classList.remove('show');
             document.getElementById('findingsPage').classList.remove('show');
             document.getElementById('mainTool').style.display = 'block';
             document.getElementById('uploadSection').style.display = 'block';
@@ -5838,9 +5336,6 @@
                 case 'guide':
                     showReferenceGuide();
                     break;
-                case 'patterns':
-                    showPatternsPage();
-                    break;
                 case 'reset':
                     reset();
                     break;
@@ -5888,9 +5383,6 @@
 
         var _origShowMainTool = showMainTool;
         showMainTool = function() { _origShowMainTool(); updateAppSidebarState(); };
-
-        var _origShowPatternsPage = showPatternsPage;
-        showPatternsPage = function() { _origShowPatternsPage(); updateAppSidebarState(); };
 
         // Also hook analyzeEventLog display if it uses a different pattern
         // We'll use a MutationObserver as a fallback
