@@ -1411,9 +1411,184 @@
             width: 100%;
             table-layout: fixed;  /* respects the column widths we set */
         }
+        /* ===== APP SIDEBAR (left nav) ===== */
+        .app-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 56px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            z-index: 900;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.25s ease;
+            overflow: hidden;
+        }
+        .app-sidebar:hover {
+            width: 240px;
+        }
+        .app-sidebar:hover .app-sidebar-label {
+            opacity: 1;
+        }
+        .app-sidebar-label {
+            opacity: 0;
+            white-space: nowrap;
+            transition: opacity 0.2s ease;
+            font-size: 13px;
+        }
+        .app-sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .app-sidebar-brand .wire { color: var(--crimson); }
+        .app-sidebar-brand .trace { color: var(--cyan); }
+
+        .app-sidebar-section-title {
+            padding: 14px 16px 6px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            opacity: 0;
+            height: 0;
+            padding: 0 16px;
+            transition: opacity 0.2s, height 0.2s, padding 0.2s;
+        }
+        .app-sidebar:hover .app-sidebar-section-title {
+            opacity: 1;
+            height: auto;
+            padding: 14px 16px 6px;
+        }
+        .app-sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+        .app-sidebar-item:hover {
+            background: var(--hover);
+            color: var(--text-primary);
+        }
+        .app-sidebar-item:hover .app-sidebar-icon {
+            filter: drop-shadow(0 0 4px var(--crimson));
+        }
+        .app-sidebar-icon {
+            font-size: 18px;
+            min-width: 24px;
+            text-align: center;
+        }
+        .app-sidebar-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 6px 12px;
+        }
+        /* push main content right */
+        .container {
+            margin-left: 56px;
+            transition: margin-left 0.25s ease;
+        }
+
+        /* Hamburger for mobile */
+        .app-sidebar-hamburger {
+            display: none;
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 1001;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 22px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+        .app-sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 899;
+        }
+        .app-sidebar-overlay.open { display: block; }
+
+        @media (max-width: 768px) {
+            .app-sidebar {
+                width: 0;
+                transform: translateX(-100%);
+            }
+            .app-sidebar:hover { width: 0; }
+            .app-sidebar.mobile-open {
+                width: 260px;
+                transform: translateX(0);
+            }
+            .app-sidebar.mobile-open .app-sidebar-label { opacity: 1; }
+            .app-sidebar.mobile-open .app-sidebar-section-title { opacity: 1; height: auto; padding: 14px 16px 6px; }
+            .app-sidebar-hamburger { display: flex; }
+            .container { margin-left: 0; padding-top: 56px; }
+        }
     </style>
 </head>
 <body>
+    <!-- App Sidebar hamburger (mobile) -->
+    <button class="app-sidebar-hamburger" onclick="toggleAppSidebar()">☰</button>
+    <div class="app-sidebar-overlay" id="appSidebarOverlay" onclick="toggleAppSidebar()"></div>
+
+    <!-- App Sidebar (left nav) -->
+    <nav id="appSidebar" class="app-sidebar">
+        <div class="app-sidebar-brand">
+            <span class="app-sidebar-icon" style="font-size:18px;color:var(--crimson);">&#9670;</span>
+            <span class="app-sidebar-label"><span class="wire">Voda</span><span class="trace">Trace</span></span>
+        </div>
+
+        <div class="app-sidebar-section-title">General</div>
+        <button class="app-sidebar-item" onclick="sidebarAction('home')">
+            <span class="app-sidebar-icon">&#8962;</span>
+            <span class="app-sidebar-label">Home / Main Tool</span>
+        </button>
+        <button class="app-sidebar-item" onclick="sidebarAction('guide')">
+            <span class="app-sidebar-icon">&#9776;</span>
+            <span class="app-sidebar-label">Reference Guide</span>
+        </button>
+        <button class="app-sidebar-item" onclick="sidebarAction('reset')">
+            <span class="app-sidebar-icon">&#8635;</span>
+            <span class="app-sidebar-label">Load New File</span>
+        </button>
+
+        <div class="app-sidebar-divider"></div>
+        <div class="app-sidebar-section-title" id="asFindingsTitle" style="display:none">Findings</div>
+        <button class="app-sidebar-item" id="asPcapFindings" style="display:none" onclick="sidebarAction('pcapFindings')">
+            <span class="app-sidebar-icon">&#9678;</span>
+            <span class="app-sidebar-label">PCAP Findings</span>
+        </button>
+        <button class="app-sidebar-item" id="asEventFindings" style="display:none" onclick="sidebarAction('eventFindings')">
+            <span class="app-sidebar-icon">&#9678;</span>
+            <span class="app-sidebar-label">Event Findings</span>
+        </button>
+    </nav>
+
     <div class="container">
         <!-- Main Tool Section -->
         <div id="mainTool">
@@ -1425,9 +1600,7 @@
                     </h1>
                     <p class="subtitle">PCAP & Event Logs Analysis Tool</p>
                     <p class="attribution">Created by Moaz Essam and Developed by Adam Abushaisha</p>
-                    <a href="#" class="reference-btn" onclick="showReferenceGuide(); return false;">
-                        📖 Reference Guide
-                    </a>
+                    <!-- Reference Guide button moved to app sidebar -->
                 </div>
             </header>
 
@@ -1565,7 +1738,7 @@
                 </section>
 
                 <div class="viewer-footer">
-                    <button class="btn-reset" onclick="reset()">🔄 Load New File</button>
+                    <!-- Load New File button moved to app sidebar -->
                     <span class="filename" id="currentFilename"></span>
                 </div>
             </div>
@@ -1626,7 +1799,7 @@
                 </div>
 
                 <div class="viewer-footer">
-                    <button class="btn-reset" onclick="reset()">🔄 Load New File</button>
+                    <!-- Load New File button moved to app sidebar -->
                     <span class="filename" id="eventFilename"></span>
                 </div>
 
@@ -5079,6 +5252,85 @@
             switchSidebarTab('security');
             
             return rogueDevices;
+        }
+
+        // ===== APP SIDEBAR UI LOGIC =====
+        function toggleAppSidebar() {
+            var sb = document.getElementById('appSidebar');
+            var ov = document.getElementById('appSidebarOverlay');
+            sb.classList.toggle('mobile-open');
+            ov.classList.toggle('open');
+        }
+
+        function sidebarAction(action) {
+            // Close mobile sidebar after action
+            if (window.innerWidth <= 768) toggleAppSidebar();
+            switch (action) {
+                case 'home':
+                    showMainTool();
+                    break;
+                case 'guide':
+                    showReferenceGuide();
+                    break;
+                case 'reset':
+                    reset();
+                    break;
+                case 'pcapFindings':
+                    jumpToPCAPFindings();
+                    break;
+                case 'eventFindings':
+                    jumpToFindings();
+                    break;
+            }
+            updateAppSidebarState();
+        }
+
+        function updateAppSidebarState() {
+            var pcapVisible = document.getElementById('pcapViewer').classList.contains('show');
+            var eventVisible = document.getElementById('eventViewer').classList.contains('show');
+            var showFindings = pcapVisible || eventVisible;
+
+            // Findings section
+            _sbToggle('asFindingsTitle', showFindings);
+            _sbToggle('asPcapFindings', pcapVisible);
+            _sbToggle('asEventFindings', eventVisible);
+
+        }
+
+        function _sbToggle(id, show) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = show ? '' : 'none';
+        }
+
+        // Hook into existing display functions to update sidebar state
+        var _origDisplayPCAPViewer = displayPCAPViewer;
+        displayPCAPViewer = function() { _origDisplayPCAPViewer(); updateAppSidebarState(); };
+
+        var _origDisplayEventViewer = typeof displayEventViewer === 'function' ? displayEventViewer : null;
+        if (_origDisplayEventViewer) {
+            displayEventViewer = function() { _origDisplayEventViewer.apply(this, arguments); updateAppSidebarState(); };
+        }
+
+        var _origReset = reset;
+        reset = function() { _origReset(); updateAppSidebarState(); };
+
+        var _origShowRefGuide = showReferenceGuide;
+        showReferenceGuide = function() { _origShowRefGuide(); updateAppSidebarState(); };
+
+        var _origShowMainTool = showMainTool;
+        showMainTool = function() { _origShowMainTool(); updateAppSidebarState(); };
+
+        // Also hook analyzeEventLog display if it uses a different pattern
+        // We'll use a MutationObserver as a fallback
+        var _eventViewerEl = document.getElementById('eventViewer');
+        if (_eventViewerEl) {
+            new MutationObserver(function() { updateAppSidebarState(); })
+                .observe(_eventViewerEl, { attributes: true, attributeFilter: ['class'] });
+        }
+        var _pcapViewerEl = document.getElementById('pcapViewer');
+        if (_pcapViewerEl) {
+            new MutationObserver(function() { updateAppSidebarState(); })
+                .observe(_pcapViewerEl, { attributes: true, attributeFilter: ['class'] });
         }
     </script>
 </body>
