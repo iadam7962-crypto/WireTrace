@@ -1653,7 +1653,7 @@
                     </select>
                     <button class="btn-apply" onclick="applyPCAPFilters()">Apply</button>
                     <button class="btn-clear" onclick="clearPCAPFilters()">Clear</button>
-                    <button class="btn-jump-findings" onclick="jumpToPCAPFindings()">↓ Jump to Findings</button>
+                    <button class="btn-jump-findings" onclick="jumpToPCAPFindings()">Jump to Findings</button>
                     
                     <div class="time-controls">
                         <span class="time-label">Time:</span>
@@ -1692,12 +1692,13 @@
 
                     <div class="sidebar">
                         <div class="sidebar-tabs">
-                            <div class="sidebar-tab active" onclick="switchSidebarTab('details')">📦 Details</div>
-                            <div class="sidebar-tab" onclick="switchSidebarTab('endpoints')">🌐 Endpoints</div>
-                            <div class="sidebar-tab" onclick="switchSidebarTab('security')">🛡️ Security</div>
+                            <div class="sidebar-tab active" data-pcap-tab="details" onclick="switchSidebarTab('details')">📦 Details</div>
+                            <div class="sidebar-tab" data-pcap-tab="endpoints" onclick="switchSidebarTab('endpoints')">🌐 Endpoints</div>
+                            <div class="sidebar-tab" data-pcap-tab="security" onclick="switchSidebarTab('security')">🛡️ Security</div>
+                            <div class="sidebar-tab" data-pcap-tab="findings" onclick="switchSidebarTab('findings')">🧭 Findings</div>
                         </div>
 
-                        <div class="sidebar-content active" id="detailsTab">
+                        <div class="sidebar-content active" id="detailsTab" data-pcap-panel="details">
                             <div class="detail-section">
                                 <h3>📦 Packet Details</h3>
                                 <div id="packetDetailsContent">
@@ -1710,7 +1711,7 @@
                             </div>
                         </div>
 
-                        <div class="sidebar-content" id="endpointsTab">
+                        <div class="sidebar-content" id="endpointsTab" data-pcap-panel="endpoints">
                             <div class="detail-section">
                                 <h3>💻 IP Endpoints</h3>
                                 <div id="ipEndpoints"></div>
@@ -1721,7 +1722,7 @@
                             </div>
                         </div>
 
-                        <div class="sidebar-content" id="securityTab">
+                        <div class="sidebar-content" id="securityTab" data-pcap-panel="security">
                             <div class="detail-section">
                                 <h3>🛡️ Rogue Device Detection</h3>
                                 <div id="rogueDevicesContent">
@@ -1730,12 +1731,12 @@
                             </div>
                         </div>
 
+                        <div class="sidebar-content" id="pcapFindingsTab" data-pcap-panel="findings">
+                            <div id="pcapFindingsContent"></div>
+                        </div>
+
                     </div>
                 </div>
-
-                <section id="pcapFindingsSection" class="findings-section">
-                    <div id="pcapFindingsContent"></div>
-                </section>
 
                 <div class="viewer-footer">
                     <!-- Load New File button moved to app sidebar -->
@@ -1755,7 +1756,7 @@
                     </select>
                     <button class="btn-apply" onclick="applyEventFilters()">Apply</button>
                     <button class="btn-clear" onclick="clearEventFilters()">Clear</button>
-                    <button class="btn-jump-findings" onclick="jumpToFindings()">↓ Jump to Findings</button>
+                    <button class="btn-jump-findings" onclick="jumpToFindings()">Jump to Findings</button>
                     <select id="eventDisplayLimit" onchange="renderEventTable()">
                         <option value="1000">1,000</option>
                         <option value="5000">5,000</option>
@@ -1783,7 +1784,12 @@
                     </div>
 
                     <div class="sidebar">
-                        <div class="sidebar-content active">
+                        <div class="sidebar-tabs">
+                            <div class="sidebar-tab active" data-event-tab="details" onclick="switchEventSidebarTab('details')">📋 Details</div>
+                            <div class="sidebar-tab" data-event-tab="findings" onclick="switchEventSidebarTab('findings')">🧭 Findings</div>
+                        </div>
+
+                        <div class="sidebar-content active" data-event-panel="details">
                             <div class="detail-section">
                                 <h3>📋 Event Details</h3>
                                 <div id="eventDetailsContent">
@@ -1795,6 +1801,10 @@
                                 <div id="eventPatterns"></div>
                             </div>
                         </div>
+
+                        <div class="sidebar-content" data-event-panel="findings">
+                            <div id="findingsContent"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -1802,10 +1812,6 @@
                     <!-- Load New File button moved to app sidebar -->
                     <span class="filename" id="eventFilename"></span>
                 </div>
-
-                <section id="findingsSection" class="findings-section">
-                    <div id="findingsContent"></div>
-                </section>
             </div>
         </div>
 
@@ -3915,19 +3921,29 @@
 
         function switchSidebarTab(tab) {
             const tabMap = {
-                details: { button: 0, panel: 'detailsTab' },
-                endpoints: { button: 1, panel: 'endpointsTab' },
-                security: { button: 2, panel: 'securityTab' }
+                details: 'details',
+                endpoints: 'endpoints',
+                security: 'security',
+                findings: 'findings'
             };
 
-            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.sidebar-content').forEach(c => c.classList.remove('active'));
-
             const target = tabMap[tab] || tabMap.details;
-            const tabs = document.querySelectorAll('.sidebar-tab');
-            if (tabs[target.button]) tabs[target.button].classList.add('active');
-            const panel = document.getElementById(target.panel);
-            if (panel) panel.classList.add('active');
+            document.querySelectorAll('[data-pcap-tab]').forEach(t => {
+                t.classList.toggle('active', t.dataset.pcapTab === target);
+            });
+            document.querySelectorAll('[data-pcap-panel]').forEach(panel => {
+                panel.classList.toggle('active', panel.dataset.pcapPanel === target);
+            });
+        }
+
+        function switchEventSidebarTab(tab) {
+            const target = tab === 'findings' ? 'findings' : 'details';
+            document.querySelectorAll('[data-event-tab]').forEach(t => {
+                t.classList.toggle('active', t.dataset.eventTab === target);
+            });
+            document.querySelectorAll('[data-event-panel]').forEach(panel => {
+                panel.classList.toggle('active', panel.dataset.eventPanel === target);
+            });
         }
 
 
@@ -4021,8 +4037,7 @@
         }
 
         function jumpToPCAPFindings() {
-            const panel = document.getElementById('pcapFindingsSection');
-            if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            switchSidebarTab('findings');
         }
 
         function summarizePacket(packet) {
@@ -5089,8 +5104,7 @@
         }
 
         function jumpToFindings() {
-            const findingsSection = document.getElementById('findingsSection');
-            if (findingsSection) findingsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            switchEventSidebarTab('findings');
         }
 
         function showMoreFindings() {
